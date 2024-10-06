@@ -1,3 +1,4 @@
+/*
 package gateway.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -25,9 +26,11 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         sendErrorResponse(response);
     }
 
-    /**
+    */
+/**
      * jwt 예외처리 응답
-     */
+     *//*
+
     private void sendErrorResponse(HttpServletResponse response) throws IOException {
         response.setCharacterEncoding("utf-8");
         response.setStatus(HttpStatus.FORBIDDEN.value());
@@ -37,3 +40,4 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
         );
     }
 }
+*/

@@ -1,4 +1,6 @@
 spring:
+  main:
+    web-application-type: reactive
   datasource:
     url: jdbc:h2:tcp://localhost/~/Study/AIKU/aikuDb
     username: sa
@@ -12,8 +14,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect
         default_batch_fetch_size: 100
-        show_sql: true   # 하이버네이트 기본 SQL 출력 옵션
-        format_sql: true # 하이버네이트 기본 SQL 포맷팅 옵션
 
 jwt:
   secret: ${JWT_SECRET}

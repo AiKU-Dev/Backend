@@ -1,3 +1,4 @@
+/*
 package gateway.security;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -17,3 +18,4 @@ public class OpenEntityManagerConfig {
         return filterRegistrationBean;
     }
 }
+*/
