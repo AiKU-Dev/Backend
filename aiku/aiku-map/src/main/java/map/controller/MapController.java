@@ -31,12 +31,19 @@ public class MapController {
 
 
     @PostMapping("/location")
-    public BaseResponse<BaseResultDto> sendLocation(@PathVariable Long scheduleId,
+    public LocationsResponseDto sendLocation(@PathVariable Long scheduleId,
                                                     @RequestHeader(name = "Access-Member-Id") Long accessMemberId,
                                                     @RequestBody @Valid RealTimeLocationDto realTimeLocationDto) {
-        Long scheduleResId = mapService.sendLocation(accessMemberId, scheduleId, realTimeLocationDto);
+        LocationsResponseDto locationsResponseDto = mapService.saveAndSendAllLocation(accessMemberId, scheduleId, realTimeLocationDto);
 
-        return BaseResponse.getSimpleRes(scheduleResId);
+        return locationsResponseDto;
+    }
+
+    @GetMapping("/location")
+    public LocationsResponseDto getLocation(@PathVariable Long scheduleId,
+                                             @RequestHeader(name = "Access-Member-Id") Long accessMemberId) {
+
+        return mapService.getAllLocation(accessMemberId, scheduleId);
     }
 
     @PostMapping("/arrival")

@@ -48,7 +48,6 @@ public class AlarmMessageMapper {
             case RACING_TERM -> RacingTermMessage.class;
             case RACING_START -> RacingStartMessage.class;
             case TITLE_GRANTED -> TitleGrantedMessage.class;
-            case MEMBER_REAL_TIME_LOCATION -> LocationAlarmMessage.class;
             case PAYMENT_SUCCESS -> PaymentSuccessMessage.class;
             case PAYMENT_FAILED -> PaymentFailedMessage.class;
             case POINT_ERROR -> PointErrorMessage.class;

@@ -40,27 +40,25 @@ public class MemberMessageService {
 
         messageSender.sendMessage(messageData, fcmTokensAlarmOn);
 
-        if (!message.getAlarmMessageType().equals(AlarmMessageType.MEMBER_REAL_TIME_LOCATION)) {
-            // 멤버 실시간 위치는 직접적인 알림이 아니기 때문에 제외
-            List<Long> memberIds = memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens);
+        // 멤버 실시간 위치는 직접적인 알림이 아니기 때문에 제외
+        List<Long> memberIds = memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens);
 
-            if (memberIds.isEmpty()) {
-                throw new MemberNotFoundException();
-            }
-
-            String simpleAlarmInfo = alarmMessageConverter.getSimpleAlarmInfo(message);
-
-            List<MemberMessage> memberMessages = new ArrayList<>();
-            memberIds.forEach(memberId -> memberMessages.add(
-                            new MemberMessage(message.getAlarmMessageType(),
-                                    memberId,
-                                    simpleAlarmInfo
-                            )
-                    )
-            );
-
-            memberMessageRepository.saveAll(memberMessages);
+        if (memberIds.isEmpty()) {
+            throw new MemberNotFoundException();
         }
+
+        String simpleAlarmInfo = alarmMessageConverter.getSimpleAlarmInfo(message);
+
+        List<MemberMessage> memberMessages = new ArrayList<>();
+        memberIds.forEach(memberId -> memberMessages.add(
+                        new MemberMessage(message.getAlarmMessageType(),
+                                memberId,
+                                simpleAlarmInfo
+                        )
+                )
+        );
+
+        memberMessageRepository.saveAll(memberMessages);
     }
 
     public DataResDto<List<MemberMessageDto>> getMemberMessageByMemberId(Long memberId, int page) {

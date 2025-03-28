@@ -11,17 +11,17 @@ import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
 @Component
-public class RacingEventPublisher {
+public class ScheduleEventPublisher {
 
     private final ApplicationEventPublisher publisher;
 
-    public void publishAskRacingEvent(RacingInfo racingInfo){
-        AskRacingEvent event = new AskRacingEvent(racingInfo);
+    public void publishMemberArrivalEvent(Long memberId, Long scheduleId, String scheduleName){
+        MemberArrivalEvent event = new MemberArrivalEvent(memberId, scheduleId, scheduleName);
         publisher.publishEvent(event);
     }
 
-    public void publishRacingStatusNotChangedEvent(RacingInfo racingInfo){
-        RacingStatusNotChangedEvent event = new RacingStatusNotChangedEvent(racingInfo);
+    public void publishScheduleCloseEvent(Long scheduleId){
+        ScheduleCloseEvent event = new ScheduleCloseEvent(scheduleId);
         publisher.publishEvent(event);
     }
 
