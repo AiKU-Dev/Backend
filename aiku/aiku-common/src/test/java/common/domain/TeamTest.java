@@ -5,6 +5,7 @@ import common.domain.team.Team;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static common.domain.Status.DELETE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TeamTest {
@@ -30,6 +31,18 @@ class TeamTest {
         assertThat(team.getTeamName()).isEqualTo(teamName);
         assertThat(team.getStatus()).isEqualTo(Status.ALIVE);
         assertThat(team.getTeamMembers()).hasSize(1);
+    }
+
+    @Test
+    void delete() {
+        //given
+        Team team = Team.create(member1, "team");
+
+        //when
+        team.delete();
+
+        //then
+        assertThat(team.getStatus()).isEqualTo(DELETE);
     }
 
     @Test
