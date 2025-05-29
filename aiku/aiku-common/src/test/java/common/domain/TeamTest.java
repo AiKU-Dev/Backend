@@ -2,10 +2,12 @@ package common.domain;
 
 import common.domain.member.Member;
 import common.domain.team.Team;
+import common.domain.team.TeamMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static common.domain.Status.DELETE;
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TeamTest {
@@ -58,5 +60,21 @@ class TeamTest {
         assertThat(team.getTeamName()).isEqualTo(teamName);
         assertThat(team.getStatus()).isEqualTo(Status.ALIVE);
         assertThat(team.getTeamMembers()).hasSize(2);
+    }
+
+    @Test
+    void removeTeamMember() {
+        //given
+        Team team = Team.create(member1, "team");
+
+        team.addTeamMember(member2);
+        TeamMember teamMember2 = team.getTeamMembers().get(1);
+
+        //when
+        boolean result = team.removeTeamMember(teamMember2);
+
+        //then
+        assertThat(result).isTrue();
+        assertThat(teamMember2.getStatus()).isEqualTo(DELETE);
     }
 }

@@ -81,7 +81,7 @@ public class Team extends BaseTime {
     }
 
     private boolean isValidTeamMember(TeamMember teamMember){
-        return teamMember.getTeam().getId().equals(id);
+        return teamMember.getTeam() == this;
     }
 
     public List<TeamMember> getTeamMembers() {
