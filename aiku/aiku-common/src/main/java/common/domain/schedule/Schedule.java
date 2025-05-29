@@ -83,12 +83,6 @@ public class Schedule extends BaseTime {
         this.scheduleMembers.add(scheduleMember);
     }
 
-    public void errorScheduleMember(ScheduleMember scheduleMember) {
-        if(isScheduleMember(scheduleMember)){
-            scheduleMember.setStatus(ERROR);
-        }
-    }
-
     public void removeScheduleMember(ScheduleMember scheduleMember) {
         if(isScheduleMember(scheduleMember)){
             scheduleMember.setStatus(DELETE);
