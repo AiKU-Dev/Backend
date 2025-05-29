@@ -162,7 +162,7 @@ public class Schedule extends BaseTime {
     }
 
     private boolean isScheduleMember(ScheduleMember scheduleMember){
-        return scheduleMember.getSchedule().getId().equals(this.id);
+        return scheduleMember.getSchedule() == this;
     }
 
     public List<ScheduleMember> getScheduleMembers() {
