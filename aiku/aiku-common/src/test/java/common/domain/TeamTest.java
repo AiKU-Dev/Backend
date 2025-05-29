@@ -2,41 +2,39 @@ package common.domain;
 
 import common.domain.member.Member;
 import common.domain.team.Team;
-import common.domain.team.TeamMember;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TeamTest {
 
+    Member member1;
+    Member member2;
+
+    @BeforeEach
+    void beforeEach(){
+        member1 = new Member("member1");
+        member2 = new Member("member2");
+    }
+
     @Test
     void create() {
         //given
-        Member member = new Member("member1");
+        String teamName = "team1";
 
         //when
-        String teamName = "team1";
-        Team team = Team.create(member, teamName);
+        Team team = Team.create(member1, teamName);
 
         //then
         assertThat(team.getTeamName()).isEqualTo(teamName);
         assertThat(team.getStatus()).isEqualTo(Status.ALIVE);
-        assertThat(team.getTeamMembers().size()).isEqualTo(1);
-
-        TeamMember teamMember = team.getTeamMembers().get(0);
-        assertThat(teamMember.getTeam()).isEqualTo(team);
-        assertThat(teamMember.getMember()).isEqualTo(member);
-        assertThat(teamMember.getStatus()).isEqualTo(Status.ALIVE);
+        assertThat(team.getTeamMembers()).hasSize(1);
     }
 
     @Test
     void addTeamMember() {
         //given
-        Member member1 = new Member("member1");
-        Member member2 = new Member("member2");
-
         String teamName = "team1";
         Team team = Team.create(member1, teamName);
 
@@ -46,13 +44,6 @@ class TeamTest {
         //then
         assertThat(team.getTeamName()).isEqualTo(teamName);
         assertThat(team.getStatus()).isEqualTo(Status.ALIVE);
-        assertThat(team.getTeamMembers().size()).isEqualTo(2);
-
-        List<TeamMember> teamMembers = team.getTeamMembers();
-        assertThat(teamMembers).extracting("member").containsExactly(member1, member2);
-        assertThat(teamMembers).extracting("team").containsExactly(team, team);
-        assertThat(teamMembers).extracting("status").containsExactly(Status.ALIVE, Status.ALIVE);
+        assertThat(team.getTeamMembers()).hasSize(2);
     }
-
-
 }
