@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import static common.domain.ExecStatus.TERM;
 import static common.domain.ExecStatus.WAIT;
 import static common.domain.Status.ALIVE;
+import static common.domain.Status.DELETE;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -67,7 +68,7 @@ public class Betting extends BaseTime {
         this.bettingStatus = TERM;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public void delete(){
+        this.status = DELETE;
     }
 }

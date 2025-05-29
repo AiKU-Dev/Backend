@@ -34,7 +34,7 @@ class BettingTest {
         assertThat(betting.getBetee()).isEqualTo(betee);
         assertThat(betting.getPointAmount()).isEqualTo(pointAmount);
     }
-    
+
     @Test
     void setWin() {
         //given

@@ -72,7 +72,7 @@ public class BettingService {
         Betting betting = findBettingById(bettingId);
         checkBettingMember(betting, bettor);
 
-        betting.setStatus(DELETE);
+        betting.delete();
 
         publishPointChangeEvent(
                 memberId,
@@ -89,7 +89,7 @@ public class BettingService {
     public void deleteBettingForBettor(Long memberId, Long scheduleMemberId, Long scheduleId){
         bettingRepository.findByBettorIdAndStatus(scheduleMemberId, ALIVE)
                 .ifPresent((betting) -> {
-                    betting.setStatus(DELETE);
+                    betting.delete();
 
                     publishPointChangeEvent(
                             memberId,
@@ -105,7 +105,7 @@ public class BettingService {
     public void deleteBettingForBetee(Long memberId, Long scheduleMemberId, Long scheduleId){
         bettingRepository.findByBeteeIdAndStatus(scheduleMemberId, ALIVE)
                 .ifPresent((betting) -> {
-                    betting.setStatus(DELETE);
+                    betting.delete();
 
                     Long memberIdOfBettor = scheduleRepository.findMemberIdOfScheduleMember(betting.getBettor().getId()).orElseThrow();
                     publishPointChangeEvent(
