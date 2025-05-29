@@ -5,7 +5,6 @@ import common.domain.schedule.Schedule;
 import common.domain.schedule.ScheduleMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
