@@ -6,8 +6,8 @@ import common.domain.team.TeamMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static common.domain.Status.ALIVE;
 import static common.domain.Status.DELETE;
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TeamTest {
@@ -31,7 +31,7 @@ class TeamTest {
 
         //then
         assertThat(team.getTeamName()).isEqualTo(teamName);
-        assertThat(team.getStatus()).isEqualTo(Status.ALIVE);
+        assertThat(team.getStatus()).isEqualTo(ALIVE);
         assertThat(team.getTeamMembers()).hasSize(1);
     }
 
@@ -58,8 +58,12 @@ class TeamTest {
 
         //then
         assertThat(team.getTeamName()).isEqualTo(teamName);
-        assertThat(team.getStatus()).isEqualTo(Status.ALIVE);
+        assertThat(team.getStatus()).isEqualTo(ALIVE);
         assertThat(team.getTeamMembers()).hasSize(2);
+
+        assertThat(team.getTeamMembers())
+                .extracting(TeamMember::getStatus)
+                .containsExactly(ALIVE, ALIVE);
     }
 
     @Test
@@ -76,5 +80,62 @@ class TeamTest {
         //then
         assertThat(result).isTrue();
         assertThat(teamMember2.getStatus()).isEqualTo(DELETE);
+    }
+
+    @Test
+    void removeTeamMember_유효하지_않은_팀_멤버() {
+        //given
+        Team team = Team.create(member1, "team");
+
+        Team fakeTeam = Team.create(member1, "team2");
+        TeamMember fakeTeamMember = fakeTeam.getTeamMembers().get(0);
+
+        //when
+        boolean result = team.removeTeamMember(fakeTeamMember);
+
+        //then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void setTeamLateResult() {
+        //given
+        Team team = Team.create(member1, "team");
+
+        String lateResult = "result";
+
+        //when
+        team.setTeamLateResult(lateResult);
+
+        //then
+        assertThat(team.getTeamResult().getLateTimeResult()).isEqualTo(lateResult);
+    }
+
+    @Test
+    void setTeamBettingResult() {
+        //given
+        Team team = Team.create(member1, "team");
+
+        String bettingResult = "result";
+
+        //when
+        team.setTeamBettingResult(bettingResult);
+
+        //then
+        assertThat(team.getTeamResult().getTeamBettingResult()).isEqualTo(bettingResult);
+    }
+
+    @Test
+    void setTeamRacingResult() {
+        //given
+        Team team = Team.create(member1, "team");
+
+        String racingResult = "result";
+
+        //when
+        team.setTeamRacingResult(racingResult);
+
+        //then
+        assertThat(team.getTeamResult().getTeamRacingResult()).isEqualTo(racingResult);
     }
 }
