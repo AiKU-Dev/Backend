@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static common.domain.ExecStatus.TERM;
+import static common.domain.Status.DELETE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class BettingTest {
@@ -77,5 +78,17 @@ class BettingTest {
         assertThat(betting.getBettingStatus()).isEqualTo(TERM);
         assertThat(betting.isWinner()).isFalse();
         assertThat(betting.getRewardPointAmount()).isEqualTo(0);
+    }
+
+    @Test
+    void delete() {
+        //given
+        Betting betting = new Betting();
+
+        //when
+        betting.delete();
+
+        //then
+        assertThat(betting.getStatus()).isEqualTo(DELETE);
     }
 }
