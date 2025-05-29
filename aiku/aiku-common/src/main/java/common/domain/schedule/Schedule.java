@@ -83,10 +83,13 @@ public class Schedule extends BaseTime {
         this.scheduleMembers.add(scheduleMember);
     }
 
-    public void removeScheduleMember(ScheduleMember scheduleMember) {
+    public boolean removeScheduleMember(ScheduleMember scheduleMember) {
         if(isScheduleMember(scheduleMember)){
             scheduleMember.setStatus(DELETE);
+            return true;
         }
+
+        return false;
     }
 
     public void changeScheduleOwner(ScheduleMember nextOwner){
@@ -103,10 +106,12 @@ public class Schedule extends BaseTime {
         return false;
     }
 
-    public void rewardMember(ScheduleMember scheduleMember, int rewardPointAmount){
+    public boolean rewardMember(ScheduleMember scheduleMember, int rewardPointAmount){
         if(isScheduleMember(scheduleMember)) {
             scheduleMember.setRewardPointAmount(rewardPointAmount);
+            return true;
         }
+        return false;
     }
 
     public void close(LocalDateTime scheduleCloseTime, Map<Long, LocalDateTime> scheMemArrivalTime){
