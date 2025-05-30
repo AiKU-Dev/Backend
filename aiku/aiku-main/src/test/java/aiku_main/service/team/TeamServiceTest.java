@@ -32,7 +32,10 @@ import static common.domain.Status.ALIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -66,10 +69,9 @@ class TeamServiceTest {
         Long memberId = 1L;
         TeamAddDto teamDto = new TeamAddDto("우리팀");
 
-        when(memberRepository.findByIdAndStatus(memberId, ALIVE)).thenReturn(Optional.of(mockMember1));
-
+        given(memberRepository.findByIdAndStatus(memberId, ALIVE)).willReturn(Optional.of(mockMember1));
         Long teamId = 2L;
-        when(mockTeam.getId()).thenReturn(teamId);
+        given(mockTeam.getId()).willReturn(teamId);
 
         try (MockedStatic<Team> mockedTeam = mockStatic(Team.class)) {
             mockedTeam.when(() -> Team.create(mockMember1, teamDto.getGroupName())).thenReturn(mockTeam);
@@ -79,7 +81,7 @@ class TeamServiceTest {
 
             // then
             assertThat(resultId).isEqualTo(teamId);
-            verify(teamRepository).save(mockTeam);
+            then(teamRepository).should().save(mockTeam);
         }
     }
 
@@ -87,32 +89,32 @@ class TeamServiceTest {
     void enterTeam() {
         //given
         Long memberId = 1L;
-        when(memberRepository.findByIdAndStatus(memberId, ALIVE)).thenReturn(Optional.of(mockMember1));
+        given(memberRepository.findByIdAndStatus(memberId, ALIVE)).willReturn(Optional.of(mockMember1));
 
         Long teamId = 2L;
-        when(mockTeam.getId()).thenReturn(teamId);
+        given(mockTeam.getId()).willReturn(teamId);
 
-        when(teamRepository.findByIdAndStatus(teamId, ALIVE)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(false);
+        given(teamRepository.findByIdAndStatus(teamId, ALIVE)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(false);
 
         //when
         Long resultId = teamService.enterTeam(memberId, teamId);
 
         //then
         assertThat(resultId).isEqualTo(teamId);
-        verify(mockTeam).addTeamMember(mockMember1);
+        then(mockTeam).should().addTeamMember(mockMember1);
     }
 
     @Test
     void enterTeam_중복된_팀멤버() {
         //given
         Long memberId = 1L;
-        when(memberRepository.findByIdAndStatus(memberId, ALIVE)).thenReturn(Optional.of(mockMember1));
+        given(memberRepository.findByIdAndStatus(memberId, ALIVE)).willReturn(Optional.of(mockMember1));
 
         Long teamId = 2L;
 
-        when(teamRepository.findByIdAndStatus(teamId, ALIVE)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(true);
+        given(teamRepository.findByIdAndStatus(teamId, ALIVE)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(true);
 
         //when
         assertThatThrownBy(() -> teamService.enterTeam(memberId, teamId))
@@ -127,12 +129,12 @@ class TeamServiceTest {
         Long teamMemberSize = 2L;
         TeamMember mockTeamMember = mock(TeamMember.class);
 
-        when(mockTeam.getId()).thenReturn(teamId);
-        when(teamRepository.findByIdAndStatus(teamId, ALIVE)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(true);
-        when(teamRepository.countOfTeamMember(teamId)).thenReturn(teamMemberSize);
-        when(teamRepository.findTeamMember(teamId, memberId)).thenReturn(Optional.of(mockTeamMember));
-        when(scheduleRepository.existRunScheduleOfMemberInTeam(memberId, teamId)).thenReturn(false);
+        given(mockTeam.getId()).willReturn(teamId);
+        given(teamRepository.findByIdAndStatus(teamId, ALIVE)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(true);
+        given(teamRepository.countOfTeamMember(teamId)).willReturn(teamMemberSize);
+        given(teamRepository.findTeamMember(teamId, memberId)).willReturn(Optional.of(mockTeamMember));
+        given(scheduleRepository.existRunScheduleOfMemberInTeam(memberId, teamId)).willReturn(false);
 
         // when
         Long result = teamService.exitTeam(memberId, teamId);
@@ -141,13 +143,13 @@ class TeamServiceTest {
         assertThat(result).isEqualTo(teamId);
 
         ArgumentCaptor<TeamExitEvent> eventCaptor = ArgumentCaptor.forClass(TeamExitEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        then(eventPublisher).should().publishEvent(eventCaptor.capture());
 
         TeamExitEvent publishedEvent = eventCaptor.getValue();
         assertThat(publishedEvent.getTeamId()).isEqualTo(teamId);
         assertThat(publishedEvent.getMemberId()).isEqualTo(memberId);
 
-        verify(mockTeam).removeTeamMember(mockTeamMember);
+        then(mockTeam).should().removeTeamMember(mockTeamMember);
     }
 
     @Test
@@ -158,12 +160,12 @@ class TeamServiceTest {
         Long teamMemberSize = 1L;
         TeamMember mockTeamMember = mock(TeamMember.class);
 
-        when(mockTeam.getId()).thenReturn(teamId);
-        when(teamRepository.findByIdAndStatus(teamId, ALIVE)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(true);
-        when(teamRepository.countOfTeamMember(teamId)).thenReturn(teamMemberSize);
-        when(teamRepository.findTeamMember(teamId, memberId)).thenReturn(Optional.of(mockTeamMember));
-        when(scheduleRepository.existRunScheduleOfMemberInTeam(memberId, teamId)).thenReturn(false);
+        given(mockTeam.getId()).willReturn(teamId);
+        given(teamRepository.findByIdAndStatus(teamId, ALIVE)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(true);
+        given(teamRepository.countOfTeamMember(teamId)).willReturn(teamMemberSize);
+        given(teamRepository.findTeamMember(teamId, memberId)).willReturn(Optional.of(mockTeamMember));
+        given(scheduleRepository.existRunScheduleOfMemberInTeam(memberId, teamId)).willReturn(false);
 
         // when
         Long result = teamService.exitTeam(memberId, teamId);
@@ -172,14 +174,14 @@ class TeamServiceTest {
         assertThat(result).isEqualTo(teamId);
 
         ArgumentCaptor<TeamExitEvent> eventCaptor = ArgumentCaptor.forClass(TeamExitEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        then(eventPublisher).should().publishEvent(eventCaptor.capture());
 
         TeamExitEvent publishedEvent = eventCaptor.getValue();
         assertThat(publishedEvent.getTeamId()).isEqualTo(teamId);
         assertThat(publishedEvent.getMemberId()).isEqualTo(memberId);
 
-        verify(mockTeam).removeTeamMember(mockTeamMember);
-        verify(mockTeam).delete();
+        then(mockTeam).should().removeTeamMember(mockTeamMember);
+        then(mockTeam).should().delete();
     }
 
     @Test
@@ -190,15 +192,15 @@ class TeamServiceTest {
         Long teamId = 3L;
         String teamName = "그룹 이름";
 
-        when(mockTeam.getTeamName()).thenReturn(teamName);
-        when(teamRepository.findByIdAndStatus(teamId, ALIVE)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId1, teamId)).thenReturn(true);
+        given(mockTeam.getTeamName()).willReturn(teamName);
+        given(teamRepository.findByIdAndStatus(teamId, ALIVE)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId1, teamId)).willReturn(true);
 
         List<TeamMemberResDto> memberList = List.of(
                 new TeamMemberResDto(memberId1, "user1", new MemberProfileResDto()),
                 new TeamMemberResDto(memberId2, "user2", new MemberProfileResDto())
         );
-        when(teamRepository.getTeamMemberList(teamId)).thenReturn(memberList);
+        given(teamRepository.getTeamMemberList(teamId)).willReturn(memberList);
 
         // when
         TeamDetailResDto result = teamService.getTeamDetail(memberId1, teamId);
@@ -218,8 +220,8 @@ class TeamServiceTest {
         Long memberId1 = 1L;
         Long teamId = 2L;
 
-        when(teamRepository.findByIdAndStatus(teamId, ALIVE)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId1, teamId)).thenReturn(false);
+        given(teamRepository.findByIdAndStatus(teamId, ALIVE)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId1, teamId)).willReturn(false);
 
         // when
         assertThatThrownBy(() -> teamService.getTeamDetail(memberId1, teamId))
@@ -238,7 +240,7 @@ class TeamServiceTest {
                 new TeamResDto(teamId1, "group1", 3, null),
                 new TeamResDto(teamId2, "group2", 1, null)
         );
-        when(teamRepository.getTeamList(memberId, page)).thenReturn(expectedList);
+        given(teamRepository.getTeamList(memberId, page)).willReturn(expectedList);
 
         // when
         DataResDto<List<TeamResDto>> result = teamService.getTeamList(memberId, page);
@@ -266,11 +268,11 @@ class TeamServiceTest {
         String expected = "팀 지각 결과";
 
         TeamResult teamResult = mock(TeamResult.class);
-        when(teamResult.getLateTimeResult()).thenReturn(expected);
+        given(teamResult.getLateTimeResult()).willReturn(expected);
 
-        when(mockTeam.getTeamResult()).thenReturn(teamResult);
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(true);
+        given(mockTeam.getTeamResult()).willReturn(teamResult);
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(true);
 
         // when
         String result = teamService.getTeamLateTimeResult(memberId, teamId);
@@ -285,7 +287,7 @@ class TeamServiceTest {
         Long memberId = 1L;
         Long teamId = 2L;
 
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(false);
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(false);
 
         // when
         assertThatThrownBy(() -> teamService.getTeamLateTimeResult(memberId, teamId))
@@ -300,11 +302,11 @@ class TeamServiceTest {
         String expected = "팀 베팅 결과";
 
         TeamResult teamResult = mock(TeamResult.class);
-        when(teamResult.getTeamBettingResult()).thenReturn(expected);
+        given(teamResult.getTeamBettingResult()).willReturn(expected);
 
-        when(mockTeam.getTeamResult()).thenReturn(teamResult);
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(true);
+        given(mockTeam.getTeamResult()).willReturn(teamResult);
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(true);
 
         // when
         String result = teamService.getTeamBettingResult(memberId, teamId);
@@ -319,7 +321,7 @@ class TeamServiceTest {
         Long memberId = 1L;
         Long teamId = 2L;
 
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(false);
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(false);
 
         // when
         assertThatThrownBy(() -> teamService.getTeamBettingResult(memberId, teamId))
@@ -334,11 +336,11 @@ class TeamServiceTest {
         String expected = "팀 레이싱 결과";
 
         TeamResult teamResult = mock(TeamResult.class);
-        when(teamResult.getTeamRacingResult()).thenReturn(expected);
+        given(teamResult.getTeamRacingResult()).willReturn(expected);
 
-        when(mockTeam.getTeamResult()).thenReturn(teamResult);
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(true);
+        given(mockTeam.getTeamResult()).willReturn(teamResult);
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(true);
 
         // when
         String result = teamService.getTeamRacingResult(memberId, teamId);
@@ -353,7 +355,7 @@ class TeamServiceTest {
         Long memberId = 1L;
         Long teamId = 2L;
 
-        when(teamRepository.existTeamMember(memberId, teamId)).thenReturn(false);
+        given(teamRepository.existTeamMember(memberId, teamId)).willReturn(false);
 
         // when
         assertThatThrownBy(() -> teamService.getTeamRacingResult(memberId, teamId))
