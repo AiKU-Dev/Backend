@@ -1,4 +1,4 @@
-package aiku_main.service;
+package aiku_main.service.schedule;
 
 import aiku_main.dto.*;
 import aiku_main.dto.schedule.*;
@@ -7,7 +7,6 @@ import aiku_main.exception.TeamException;
 import aiku_main.repository.member.MemberRepository;
 import aiku_main.repository.schedule.ScheduleRepository;
 import aiku_main.repository.team.TeamRepository;
-import aiku_main.service.schedule.ScheduleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import common.domain.*;
 import common.domain.betting.Betting;
@@ -39,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Transactional
 @SpringBootTest
-public class ScheduleServiceTest {
+public class ScheduleServiceIntegrationTest {
 
     @Autowired
     ScheduleService scheduleService;
