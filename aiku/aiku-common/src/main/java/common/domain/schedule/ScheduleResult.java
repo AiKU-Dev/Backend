@@ -35,7 +35,6 @@ public class ScheduleResult extends BaseTime {
         this.schedule = schedule;
     }
 
-    //==편의 메서드==
     protected void setScheduleArrivalResult(String scheduleArrivalResult) {
         this.scheduleArrivalResult = scheduleArrivalResult;
     }
