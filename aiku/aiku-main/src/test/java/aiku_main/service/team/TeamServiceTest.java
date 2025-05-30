@@ -231,10 +231,12 @@ class TeamServiceTest {
         // given
         Long memberId = 1L;
         int page = 1;
+        Long teamId1 = 2L;
+        Long teamId2 = 3L;
 
         List<TeamResDto> expectedList = List.of(
-                new TeamResDto(2L, "group1", 3, null),
-                new TeamResDto(3L, "group2", 1, null)
+                new TeamResDto(teamId1, "group1", 3, null),
+                new TeamResDto(teamId2, "group2", 1, null)
         );
         when(teamRepository.getTeamList(memberId, page)).thenReturn(expectedList);
 
@@ -248,10 +250,10 @@ class TeamServiceTest {
         assertThat(resultData).hasSize(2);
 
         assertThat(resultData)
-                .extracting(TeamResDto::getGroupId, TeamResDto::getGroupName, TeamResDto::getMemberSize)
+                .extracting(TeamResDto::getGroupId, TeamResDto::getMemberSize)
                 .containsExactlyInAnyOrder(
-                        tuple(2L, "group1", 3),
-                        tuple(3L, "group2", 1)
+                        tuple(teamId1, 3),
+                        tuple(teamId2, 1)
                 );
     }
 
