@@ -13,7 +13,11 @@ import common.util.ObjectMapperUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -22,7 +26,11 @@ import java.util.Optional;
 import static common.domain.Status.ALIVE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+
 
 @ExtendWith(MockitoExtension.class)
 class TeamResultAnalysisServiceTest {
@@ -48,8 +56,8 @@ class TeamResultAnalysisServiceTest {
         Long teamId = 1L;
         String expected = "결과";
 
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.getTeamLateTimeResult(teamId)).thenReturn(List.of(mock(TeamLateTimeResult.class)));
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.getTeamLateTimeResult(teamId)).willReturn(List.of(mock(TeamLateTimeResult.class)));
 
         try (MockedStatic<ObjectMapperUtil> mockedUtil = Mockito.mockStatic(ObjectMapperUtil.class)) {
             mockedUtil.when(() -> ObjectMapperUtil.toJson(any())).thenReturn(expected);
@@ -59,7 +67,7 @@ class TeamResultAnalysisServiceTest {
 
             // then
             mockedUtil.verify(() -> ObjectMapperUtil.toJson(any(TeamLateTimeResultDto.class)));
-            verify(mockTeam).setTeamLateResult(expected);
+            then(mockTeam).should().setTeamLateResult(expected);
         }
     }
 
@@ -69,8 +77,8 @@ class TeamResultAnalysisServiceTest {
         Long teamId = 1L;
         String expected = "결과";
 
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.getBettingWinOddsResult(teamId)).thenReturn(List.of(mock(TeamBettingResult.class)));
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.getBettingWinOddsResult(teamId)).willReturn(List.of(mock(TeamBettingResult.class)));
 
         try (MockedStatic<ObjectMapperUtil> mockedUtil = Mockito.mockStatic(ObjectMapperUtil.class)) {
             mockedUtil.when(() -> ObjectMapperUtil.toJson(any())).thenReturn(expected);
@@ -80,7 +88,7 @@ class TeamResultAnalysisServiceTest {
 
             // then
             mockedUtil.verify(() -> ObjectMapperUtil.toJson(any(TeamBettingResultDto.class)));
-            verify(mockTeam).setTeamBettingResult(expected);
+            then(mockTeam).should().setTeamBettingResult(expected);
         }
     }
 
@@ -90,8 +98,8 @@ class TeamResultAnalysisServiceTest {
         Long teamId = 1L;
         String expected = "결과";
 
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
-        when(teamRepository.getRacingWinOddsResult(teamId)).thenReturn(List.of(mock(TeamRacingResult.class)));
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
+        given(teamRepository.getRacingWinOddsResult(teamId)).willReturn(List.of(mock(TeamRacingResult.class)));
 
         try (MockedStatic<ObjectMapperUtil> mockedUtil = Mockito.mockStatic(ObjectMapperUtil.class)) {
             mockedUtil.when(() -> ObjectMapperUtil.toJson(any())).thenReturn(expected);
@@ -101,7 +109,7 @@ class TeamResultAnalysisServiceTest {
 
             // then
             mockedUtil.verify(() -> ObjectMapperUtil.toJson(any(TeamRacingResultDto.class)));
-            verify(mockTeam).setTeamRacingResult(expected);
+            then(mockTeam).should().setTeamRacingResult(expected);
         }
     }
 
@@ -116,13 +124,13 @@ class TeamResultAnalysisServiceTest {
 
 
         TeamResult mockTeamResult = mock(TeamResult.class);
-        when(mockTeamResult.hasNoLateTimeResult()).thenReturn(false); //지각 시간만 업데이트
-        when(mockTeamResult.hasNoTeamBettingResult()).thenReturn(true);
-        when(mockTeamResult.hasNoTeamRacingResult()).thenReturn(true);
-        when(mockTeamResult.getLateTimeResult()).thenReturn(originalResult);
+        given(mockTeamResult.hasNoLateTimeResult()).willReturn(false); //지각 시간만 업데이트
+        given(mockTeamResult.hasNoTeamBettingResult()).willReturn(true);
+        given(mockTeamResult.hasNoTeamRacingResult()).willReturn(true);
+        given(mockTeamResult.getLateTimeResult()).willReturn(originalResult);
 
-        when(mockTeam.getTeamResult()).thenReturn(mockTeamResult);
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
+        given(mockTeam.getTeamResult()).willReturn(mockTeamResult);
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
 
         List<TeamLateTimeResult> lateTimeResultList = List.of(
                 new TeamLateTimeResult(memberId1, "name1", null, 0, ALIVE),
@@ -149,7 +157,7 @@ class TeamResultAnalysisServiceTest {
                             tuple(memberId2, true)
                     );
 
-            verify(mockTeam).setTeamLateResult(expected);
+            then(mockTeam).should().setTeamLateResult(expected);
         }
     }
 
@@ -164,13 +172,13 @@ class TeamResultAnalysisServiceTest {
 
 
         TeamResult mockTeamResult = mock(TeamResult.class);
-        when(mockTeamResult.hasNoTeamBettingResult()).thenReturn(false); //베팅 승률만 업데이트
-        when(mockTeamResult.hasNoLateTimeResult()).thenReturn(true);
-        when(mockTeamResult.hasNoTeamRacingResult()).thenReturn(true);
-        when(mockTeamResult.getTeamBettingResult()).thenReturn(originalResult);
+        given(mockTeamResult.hasNoTeamBettingResult()).willReturn(false); //베팅 승률만 업데이트
+        given(mockTeamResult.hasNoLateTimeResult()).willReturn(true);
+        given(mockTeamResult.hasNoTeamRacingResult()).willReturn(true);
+        given(mockTeamResult.getTeamBettingResult()).willReturn(originalResult);
 
-        when(mockTeam.getTeamResult()).thenReturn(mockTeamResult);
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
+        given(mockTeam.getTeamResult()).willReturn(mockTeamResult);
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
 
         List<TeamBettingResult> bettingResultList = List.of(
                 new TeamBettingResult(memberId1, "name1", null, 0, ALIVE),
@@ -197,7 +205,7 @@ class TeamResultAnalysisServiceTest {
                             tuple(memberId2, true)
                     );
 
-            verify(mockTeam).setTeamBettingResult(expected);
+            then(mockTeam).should().setTeamBettingResult(expected);
         }
     }
 
@@ -212,13 +220,13 @@ class TeamResultAnalysisServiceTest {
 
 
         TeamResult mockTeamResult = mock(TeamResult.class);
-        when(mockTeamResult.hasNoTeamRacingResult()).thenReturn(false); //베팅 승률만 업데이트
-        when(mockTeamResult.hasNoTeamBettingResult()).thenReturn(true);
-        when(mockTeamResult.hasNoLateTimeResult()).thenReturn(true);
-        when(mockTeamResult.getTeamRacingResult()).thenReturn(originalResult);
+        given(mockTeamResult.hasNoTeamRacingResult()).willReturn(false); //베팅 승률만 업데이트
+        given(mockTeamResult.hasNoTeamBettingResult()).willReturn(true);
+        given(mockTeamResult.hasNoLateTimeResult()).willReturn(true);
+        given(mockTeamResult.getTeamRacingResult()).willReturn(originalResult);
 
-        when(mockTeam.getTeamResult()).thenReturn(mockTeamResult);
-        when(teamRepository.findTeamWithResult(teamId)).thenReturn(Optional.of(mockTeam));
+        given(mockTeam.getTeamResult()).willReturn(mockTeamResult);
+        given(teamRepository.findTeamWithResult(teamId)).willReturn(Optional.of(mockTeam));
 
         List<TeamRacingResult> teamRacingResultList = List.of(
                 new TeamRacingResult(memberId1, "name1", null, 0, ALIVE),
@@ -245,7 +253,7 @@ class TeamResultAnalysisServiceTest {
                             tuple(memberId2, true)
                     );
 
-            verify(mockTeam).setTeamRacingResult(expected);
+            then(mockTeam).should().setTeamRacingResult(expected);
         }
     }
 }
