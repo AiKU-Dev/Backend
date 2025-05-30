@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
 @SpringBootTest
-class TeamResultAnalysisServiceTest {
+class TeamResultAnalysisServiceIntegrationTest {
 
     @Autowired
     EntityManager em;

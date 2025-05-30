@@ -1,11 +1,10 @@
-package aiku_main.service;
+package aiku_main.service.team;
 
 import aiku_main.dto.team.*;
 import aiku_main.dto.team.TeamResDto;
 import aiku_main.exception.TeamException;
 import aiku_main.repository.member.MemberRepository;
 import aiku_main.repository.team.TeamRepository;
-import aiku_main.service.team.TeamService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import common.domain.*;
 import common.domain.member.Member;
