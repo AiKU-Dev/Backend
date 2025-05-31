@@ -47,7 +47,7 @@ public class TeamService {
     public Long enterTeam(Long memberId, Long teamId) {
         Member member = findMember(memberId);
         Team team = findTeam(teamId);
-        checkTeamMember(member.getId(), teamId, false);
+        checkTeamMember(memberId, teamId, false);
 
         team.addTeamMember(member);
 
@@ -70,7 +70,7 @@ public class TeamService {
         return team.getId();
     }
 
-    public void deleteTeamIfLastMember(Team team){
+    private void deleteTeamIfLastMember(Team team){
         Long teamMemberCount = teamRepository.countOfTeamMember(team.getId());
         if (isLastMember(teamMemberCount)){
             team.delete();
@@ -102,8 +102,8 @@ public class TeamService {
     }
 
     public String getTeamLateTimeResult(Long memberId, Long teamId){
-        Team team = findTeamWithResult(teamId);
         checkTeamMember(memberId, teamId, true);
+        Team team = findTeamWithResult(teamId);
 
         return team.getTeamResult() == null
                 ? null
@@ -111,8 +111,8 @@ public class TeamService {
     }
 
     public String getTeamBettingResult(Long memberId, Long teamId){
-        Team team = findTeamWithResult(teamId);
         checkTeamMember(memberId, teamId, true);
+        Team team = findTeamWithResult(teamId);
 
         return team.getTeamResult() == null
                 ? null
@@ -120,8 +120,8 @@ public class TeamService {
     }
 
     public String getTeamRacingResult(Long memberId, Long teamId) {
-        Team team = findTeamWithResult(teamId);
         checkTeamMember(memberId, teamId, true);
+        Team team = findTeamWithResult(teamId);
 
         return team.getTeamResult() == null
                 ? null

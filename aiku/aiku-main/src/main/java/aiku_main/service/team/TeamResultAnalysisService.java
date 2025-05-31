@@ -27,8 +27,8 @@ public class TeamResultAnalysisService {
     public void analyzeLateTimeResult(Long teamId) {
         Team team = teamRepository.findTeamWithResult(teamId).orElseThrow();
 
-        List<TeamLateTimeResult> result = teamRepository.getTeamLateTimeResult(team.getId()); //1.지각 총 시간 내림차순, 2.스케줄 총 개수 내림차순
-        TeamLateTimeResultDto resultDto = new TeamLateTimeResultDto(team.getId(), result);
+        List<TeamLateTimeResult> result = teamRepository.getTeamLateTimeResult(teamId); //1.지각 총 시간 내림차순, 2.스케줄 총 개수 내림차순
+        TeamLateTimeResultDto resultDto = new TeamLateTimeResultDto(teamId, result);
 
         team.setTeamLateResult(ObjectMapperUtil.toJson(resultDto));
     }

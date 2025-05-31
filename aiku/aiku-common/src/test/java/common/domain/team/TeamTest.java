@@ -1,8 +1,6 @@
-package common.domain;
+package common.domain.team;
 
 import common.domain.member.Member;
-import common.domain.team.Team;
-import common.domain.team.TeamMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

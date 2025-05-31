@@ -1,8 +1,7 @@
-package common.domain;
+package common.domain.schedule;
 
+import common.domain.Location;
 import common.domain.member.Member;
-import common.domain.schedule.Schedule;
-import common.domain.schedule.ScheduleMember;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
