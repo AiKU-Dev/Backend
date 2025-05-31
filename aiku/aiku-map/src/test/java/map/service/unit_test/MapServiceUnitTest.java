@@ -11,7 +11,6 @@ import common.kafka_message.alarm.*;
 import map.application_event.event.MemberArrivalEvent;
 import map.application_event.event.ScheduleCloseEvent;
 import map.dto.*;
-import map.exception.MemberNotFoundException;
 import map.exception.ScheduleException;
 import map.kafka.KafkaProducerService;
 import map.repository.arrival.ArrivalRepository;
@@ -31,6 +30,7 @@ import static common.domain.ExecStatus.RUN;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.*;
 import static org.mockito.BDDMockito.given;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -96,7 +96,7 @@ public class MapServiceUnitTest {
 
         assertThat(res.getCount()).isEqualTo(locs.size());
         assertThat(res.getLocations()).isEqualTo(locs);
-        verify(scheduleLocationRepository).saveLocation(scheduleId, memberId, 1.0, 2.0);
+        then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
     }
 
     @Test
@@ -142,11 +142,11 @@ public class MapServiceUnitTest {
         Long res = mapService.makeMemberArrive(memberId, scheduleId, dto);
 
         assertThat(res).isEqualTo(scheduleId);
-        verify(arrivalRepository).save(any(Arrival.class));
-        verify(scheduleLocationRepository).saveLocation(scheduleId, memberId, 1.0, 2.0);
-        verify(scheduleLocationRepository).updateArrivalStatus(scheduleId, memberId, true);
-        verify(publisher).publishEvent(any(MemberArrivalEvent.class));
-        verify(publisher).publishEvent(any(ScheduleCloseEvent.class));
+        then(arrivalRepository).should().save(any(Arrival.class));
+        then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
+        then(scheduleLocationRepository).should().updateArrivalStatus(scheduleId, memberId, true);
+        then(publisher).should().publishEvent(any(MemberArrivalEvent.class));
+        then(publisher).should().publishEvent(any(ScheduleCloseEvent.class));
     }
 
     @Test
@@ -166,11 +166,11 @@ public class MapServiceUnitTest {
         Long res = mapService.makeMemberArrive(memberId, scheduleId, dto);
 
         assertThat(res).isEqualTo(scheduleId);
-        verify(arrivalRepository).save(any(Arrival.class));
-        verify(scheduleLocationRepository).saveLocation(scheduleId, memberId, 1.0, 2.0);
-        verify(scheduleLocationRepository).updateArrivalStatus(scheduleId, memberId, true);
-        verify(publisher).publishEvent(any(MemberArrivalEvent.class));
-        verify(publisher, never()).publishEvent(isA(ScheduleCloseEvent.class));
+        then(arrivalRepository).should().save(any(Arrival.class));
+        then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
+        then(scheduleLocationRepository).should().updateArrivalStatus(scheduleId, memberId, true);
+        then(publisher).should().publishEvent(any(MemberArrivalEvent.class));
+        then(publisher).should(never()).publishEvent(any(ScheduleCloseEvent.class));
     }
 
     @Test
@@ -205,7 +205,7 @@ public class MapServiceUnitTest {
         Long res = mapService.sendEmoji(memberId, scheduleId, emojiDto);
 
         assertThat(res).isEqualTo(scheduleId);
-        verify(kafkaService).sendMessage(eq(KafkaTopic.ALARM), any(EmojiMessage.class));
+        then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), any(EmojiMessage.class));
     }
 
     @Test
@@ -229,7 +229,7 @@ public class MapServiceUnitTest {
     void deleteAllLocationsInSchedule_정상() {
         mapService.deleteAllLocationsInSchedule(scheduleId);
 
-        verify(scheduleLocationRepository).deleteScheduleLocations(scheduleId);
+        then(scheduleLocationRepository).should().deleteScheduleLocations(scheduleId);
     }
 
     @Test
@@ -240,7 +240,7 @@ public class MapServiceUnitTest {
         given(scheduleRepository.findScheduleMembersNotInArrivalByScheduleId(scheduleId)).willReturn(notArrived);
 
         mapService.makeNotArrivedMemberArrive(scheduleId, now);
-        verify(arrivalRepository).saveAll(anyList());
+        then(arrivalRepository).should().saveAll(anyList());
     }
 
     @Test
@@ -252,14 +252,14 @@ public class MapServiceUnitTest {
 
         mapService.sendKafkaAlarmIfMemberArrived(memberId, scheduleId, scheduleName, now);
 
-        verify(kafkaService).sendMessage(eq(KafkaTopic.ALARM), any(ArrivalAlarmMessage.class));
+        then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), any(ArrivalAlarmMessage.class));
     }
 
     @Test
     void sendKafkaEventIfScheduleClosed_정상() {
         mapService.sendKafkaEventIfScheduleClosed(scheduleId, now);
 
-        verify(kafkaService).sendMessage(eq(KafkaTopic.SCHEDULE_CLOSE), any(ScheduleCloseMessage.class));
+        then(kafkaService).should().sendMessage(eq(KafkaTopic.SCHEDULE_CLOSE), any(ScheduleCloseMessage.class));
     }
 
     @Test
