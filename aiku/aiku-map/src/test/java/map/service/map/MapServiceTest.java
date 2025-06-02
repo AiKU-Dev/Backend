@@ -166,8 +166,24 @@ public class MapServiceTest {
         then(arrivalRepository).should().save(any(Arrival.class));
         then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
         then(scheduleLocationRepository).should().updateArrivalStatus(scheduleId, memberId, true);
-        then(publisher).should().publishEvent(any(MemberArrivalEvent.class));
-        then(publisher).should().publishEvent(any(ScheduleCloseEvent.class));
+
+        ArgumentCaptor<MemberArrivalEvent> memberArrivalEventCaptor = ArgumentCaptor.forClass(MemberArrivalEvent.class);
+        ArgumentCaptor<ScheduleCloseEvent> scheduleCloseEventCaptor = ArgumentCaptor.forClass(ScheduleCloseEvent.class);
+
+        then(publisher).should().publishEvent(memberArrivalEventCaptor.capture());
+        then(publisher).should().publishEvent(scheduleCloseEventCaptor.capture());
+
+        // MemberArrivalEvent 검증
+        MemberArrivalEvent capturedMemberArrivalEvent = memberArrivalEventCaptor.getValue();
+        assertThat(capturedMemberArrivalEvent.getMemberId()).isEqualTo(memberId);
+        assertThat(capturedMemberArrivalEvent.getScheduleId()).isEqualTo(scheduleId);
+        assertThat(capturedMemberArrivalEvent.getScheduleName()).isEqualTo(scheduleName);
+        assertThat(capturedMemberArrivalEvent.getArrivalTime()).isEqualTo(now);
+
+        // ScheduleCloseEvent 검증
+        ScheduleCloseEvent capturedScheduleCloseEvent = scheduleCloseEventCaptor.getValue();
+        assertThat(capturedScheduleCloseEvent.getScheduleId()).isEqualTo(scheduleId);
+        assertThat(capturedScheduleCloseEvent.getCloseTime()).isEqualTo(now);
     }
 
     @Test
@@ -193,8 +209,18 @@ public class MapServiceTest {
         then(arrivalRepository).should().save(any(Arrival.class));
         then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
         then(scheduleLocationRepository).should().updateArrivalStatus(scheduleId, memberId, true);
-        then(publisher).should().publishEvent(any(MemberArrivalEvent.class));
+
+        ArgumentCaptor<MemberArrivalEvent> memberArrivalEventCaptor = ArgumentCaptor.forClass(MemberArrivalEvent.class);
+
+        then(publisher).should().publishEvent(memberArrivalEventCaptor.capture());
         then(publisher).should(never()).publishEvent(any(ScheduleCloseEvent.class));
+
+        // MemberArrivalEvent 검증
+        MemberArrivalEvent capturedMemberArrivalEvent = memberArrivalEventCaptor.getValue();
+        assertThat(capturedMemberArrivalEvent.getMemberId()).isEqualTo(memberId);
+        assertThat(capturedMemberArrivalEvent.getScheduleId()).isEqualTo(scheduleId);
+        assertThat(capturedMemberArrivalEvent.getScheduleName()).isEqualTo(scheduleName);
+        assertThat(capturedMemberArrivalEvent.getArrivalTime()).isEqualTo(now);
     }
 
     @Test
@@ -236,7 +262,16 @@ public class MapServiceTest {
 
         // Then
         assertThat(res).isEqualTo(scheduleId);
-        then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), any(EmojiMessage.class));
+
+        ArgumentCaptor<EmojiMessage> emojiMessageArgumentCaptor = ArgumentCaptor.forClass(EmojiMessage.class);
+        then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), emojiMessageArgumentCaptor.capture());
+
+        EmojiMessage capturedEmojiMessage = emojiMessageArgumentCaptor.getValue();
+        assertThat(capturedEmojiMessage.getSenderInfo()).isEqualTo(sender);
+        assertThat(capturedEmojiMessage.getReceiverInfo()).isEqualTo(receiver);
+        assertThat(capturedEmojiMessage.getAlarmMessageType()).isEqualTo(AlarmMessageType.EMOJI);
+        assertThat(capturedEmojiMessage.getScheduleId()).isEqualTo(scheduleId);
+        assertThat(capturedEmojiMessage.getScheduleName()).isEqualTo(scheduleName);
     }
 
     @Test
@@ -296,7 +331,18 @@ public class MapServiceTest {
         mapService.sendKafkaAlarmIfMemberArrived(memberId, scheduleId, scheduleName, now);
 
         // Then
-        then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), any(ArrivalAlarmMessage.class));
+        ArgumentCaptor<ArrivalAlarmMessage> alarmMessageArgumentCaptor = ArgumentCaptor.forClass(ArrivalAlarmMessage.class);
+        then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), alarmMessageArgumentCaptor.capture());
+
+        ArrivalAlarmMessage capturedMessage = alarmMessageArgumentCaptor.getValue();
+        assertThat(capturedMessage.getAlarmReceiverTokens()).isEqualTo(tokens);
+        assertThat(capturedMessage.getAlarmMessageType()).isEqualTo(AlarmMessageType.MEMBER_ARRIVAL);
+        assertThat(capturedMessage.getMemberId()).isEqualTo(memberId);
+        assertThat(capturedMessage.getScheduleId()).isEqualTo(scheduleId);
+        assertThat(capturedMessage.getScheduleName()).isEqualTo(scheduleName);
+        assertThat(capturedMessage.getArrivalTime()).isEqualTo(now);
+        assertThat(capturedMessage.getArriveMemberInfo()).isEqualTo(info);
+
     }
 
     @Test
