@@ -1,4 +1,4 @@
-package map.service.unit_test;
+package map.service.map;
 
 import common.domain.Arrival;
 import common.domain.Location;
@@ -36,7 +36,7 @@ import static org.mockito.BDDMockito.given;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class MapServiceUnitTest {
+public class MapServiceTest {
 
     @Mock KafkaProducerService kafkaService;
     @Mock MemberRepository memberRepository;
@@ -45,7 +45,8 @@ public class MapServiceUnitTest {
     @Mock ArrivalRepository arrivalRepository;
     @Mock ApplicationEventPublisher publisher;
 
-    @InjectMocks MapService mapService;
+    @InjectMocks
+    MapService mapService;
 
     Long memberId = 1L;
     Long scheduleId = 10L;
