@@ -1,4 +1,4 @@
-package map.service;
+package map.service.racing;
 
 import common.domain.ExecStatus;
 import common.domain.Location;
@@ -17,6 +17,7 @@ import map.exception.NotEnoughPointException;
 import map.exception.RacingException;
 import map.exception.ScheduleException;
 import map.repository.racing.RacingRepository;
+import map.service.RacingService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
 @SpringBootTest
-class RacingServiceTest {
+class RacingServiceIntegrationTest {
 
     @Autowired
     EntityManager em;
