@@ -1,4 +1,4 @@
-package map.service;
+package map.service.map;
 
 import common.domain.Arrival;
 import common.domain.Location;
@@ -10,7 +10,7 @@ import common.domain.value_reference.TeamValue;
 import jakarta.persistence.EntityManager;
 import map.dto.*;
 import map.exception.ScheduleException;
-import org.assertj.core.api.Assertions;
+import map.service.MapService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Transactional
 @SpringBootTest
-public class MapServiceTest {
+public class MapServiceIntegrationTest {
     @Autowired
     EntityManager em;
 
