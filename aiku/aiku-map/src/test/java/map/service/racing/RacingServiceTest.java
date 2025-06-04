@@ -76,8 +76,7 @@ public class RacingServiceTest {
     private final String TARGET_MEMBER_FCM_TOKEN = "target_member_fcm_token";
 
     @Test
-    @DisplayName("getRacings: 스케줄의 모든 진행 중인 레이싱 조회")
-    void getRacings_ShouldReturnAllRunningRacings() {
+    void getRacings_정상() {
         // Given
         given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
         given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
@@ -106,8 +105,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("getRacings: 멤버가 스케줄에 속하지 않으면 예외 발생")
-    void getRacings_WhenMemberNotInSchedule_ShouldThrowException() {
+    void getRacings_멤버가스케줄에없음_예외() {
         // Given
         given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(false);
 
@@ -118,8 +116,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("getRacings: 스케줄이 진행 중이 아니면 예외 발생")
-    void getRacings_WhenScheduleNotRunning_ShouldThrowException() {
+    void getRacings_스케줄이진행중이아님_예외() {
         // Given
         given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
         given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(false);
@@ -131,8 +128,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("makeRacing: 레이싱 생성 성공")
-    void makeRacing_ShouldCreateRacingSuccessfully() {
+    void makeRacing_정상() {
         // Given
         RacingAddDto racingAddDto = new RacingAddDto(TARGET_MEMBER_ID, POINT_AMOUNT);
         Schedule schedule = mock(Schedule.class);
@@ -181,8 +177,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("makeRacing: 스케줄이 진행 중이 아니면 예외 발생")
-    void makeRacing_WhenScheduleNotRunning_ShouldThrowException() {
+    void makeRacing_스케줄이진행중이아님_예외() {
         // Given
         RacingAddDto racingAddDto = new RacingAddDto(TARGET_MEMBER_ID, POINT_AMOUNT);
         given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(false);
@@ -194,8 +189,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("makeRacing: 중복된 레이싱이 있으면 예외 발생")
-    void makeRacing_WhenDuplicateRacingExists_ShouldThrowException() {
+    void makeRacing_중복레이싱존재_예외() {
         // Given
         RacingAddDto racingAddDto = new RacingAddDto(TARGET_MEMBER_ID, POINT_AMOUNT);
         given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
@@ -208,8 +202,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("makeRacing: 사용자의 포인트가 부족하면 예외 발생")
-    void makeRacing_WhenNotEnoughPoints_ShouldThrowException() {
+    void makeRacing_사용자포인트부족_예외() {
         // Given
         RacingAddDto racingAddDto = new RacingAddDto(TARGET_MEMBER_ID, POINT_AMOUNT);
         given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
@@ -222,8 +215,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("makeRacing: 대상 사용자의 포인트가 부족하면 예외 발생")
-    void makeRacing_WhenTargetNotEnoughPoints_ShouldThrowException() {
+    void makeRacing_대상사용자포인트부족_예외() {
         // Given
         RacingAddDto racingAddDto = new RacingAddDto(TARGET_MEMBER_ID, POINT_AMOUNT);
         given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
@@ -237,8 +229,7 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("autoDeleteRacingById: 자동 레이싱 삭제 성공")
-    void autoDeleteRacingById_ShouldDeleteRacing() {
+    void autoDeleteRacingById_정상() {
         // Given
         RacingInfo racingInfo = new RacingInfo(SCHEDULE_ID, SCHEDULE_NAME, RACING_ID, MEMBER_ID, TARGET_MEMBER_ID, POINT_AMOUNT);
         AlarmMemberInfo targetMemberInfo = mock(AlarmMemberInfo.class);
@@ -252,7 +243,7 @@ public class RacingServiceTest {
 
         // Then
         then(racingRepository).should().deleteById(RACING_ID);
-        
+
         // RacingAutoDeletedMessage 검증
         then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), racingAutoDeletedMessageCaptor.capture());
         RacingAutoDeletedMessage capturedMessage = racingAutoDeletedMessageCaptor.getValue();
@@ -266,21 +257,20 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("acceptRacing: 레이싱 수락 성공")
-    void acceptRacing_ShouldAcceptRacing() {
+    void acceptRacing_정상() {
         // Given
         Racing racing = mock(Racing.class);
         Schedule schedule = mock(Schedule.class);
         AlarmMemberInfo memberInfo = mock(AlarmMemberInfo.class);
         AlarmMemberInfo targetMemberInfo = mock(AlarmMemberInfo.class);
-        
+
         given(racing.getPointAmount()).willReturn(POINT_AMOUNT);
         given(schedule.getScheduleName()).willReturn(SCHEDULE_NAME);
-        
+
         given(racingRepository.existsByIdAndRaceStatusAndStatus(RACING_ID, WAIT, Status.ALIVE)).willReturn(true);
         given(racingRepository.checkBothMemberHaveEnoughRacingPoint(RACING_ID)).willReturn(true);
         given(racingRepository.findById(RACING_ID)).willReturn(Optional.of(racing));
-        
+
         List<AlarmMemberInfo> memberInfos = Arrays.asList(memberInfo, targetMemberInfo);
         given(racingRepository.findMemberInfoByScheduleMemberId(RACING_ID)).willReturn(memberInfos);
         given(racingRepository.findRacersFcmTokensInRacing(RACING_ID)).willReturn(Arrays.asList(MEMBER_FCM_TOKEN, TARGET_MEMBER_FCM_TOKEN));
@@ -292,7 +282,7 @@ public class RacingServiceTest {
         // Then
         assertThat(result).isEqualTo(RACING_ID);
         then(racing).should().startRacing();
-        
+
         // RacingStartMessage 검증
         then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), racingStartMessageCaptor.capture());
         RacingStartMessage capturedStartMessage = racingStartMessageCaptor.getValue();
@@ -304,18 +294,18 @@ public class RacingServiceTest {
         assertThat(capturedStartMessage.getPoint()).isEqualTo(POINT_AMOUNT);
         assertThat(capturedStartMessage.getFirstRacerInfo()).isEqualTo(memberInfo);
         assertThat(capturedStartMessage.getSecondRacerInfo()).isEqualTo(targetMemberInfo);
-        
+
         // PointChangedMessage 검증 (2개 메시지)
         then(kafkaService).should(times(2)).sendMessage(eq(KafkaTopic.ALARM), pointChangedMessageCaptor.capture());
         List<PointChangedMessage> pointChangedMessages = pointChangedMessageCaptor.getAllValues();
-        
+
         // 첫 번째 메시지 검증
         assertThat(pointChangedMessages.get(0).getMemberId()).isEqualTo(memberInfos.get(0).getMemberId());
         assertThat(pointChangedMessages.get(0).getPointChangedType()).isEqualTo(PointChangedType.MINUS);
         assertThat(pointChangedMessages.get(0).getPointAmount()).isEqualTo(POINT_AMOUNT);
         assertThat(pointChangedMessages.get(0).getReason()).isEqualTo(PointChangeReason.RACING);
         assertThat(pointChangedMessages.get(0).getReasonId()).isEqualTo(RACING_ID);
-        
+
         // 두 번째 메시지 검증
         assertThat(pointChangedMessages.get(1).getMemberId()).isEqualTo(memberInfos.get(1).getMemberId());
         assertThat(pointChangedMessages.get(1).getPointChangedType()).isEqualTo(PointChangedType.MINUS);
@@ -325,36 +315,33 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("acceptRacing: 레이싱이 대기 중이 아니면 예외 발생")
-    void acceptRacing_WhenRacingNotWaiting_ShouldThrowException() {
+    void acceptRacing_레이싱이대기중이아님_예외() {
         // Given
         given(racingRepository.existsByIdAndRaceStatusAndStatus(RACING_ID, WAIT, Status.ALIVE)).willReturn(false);
 
         // When & Then
-        ScheduleException exception = assertThrows(ScheduleException.class, 
+        ScheduleException exception = assertThrows(ScheduleException.class,
             () -> racingService.acceptRacing(MEMBER_ID, SCHEDULE_ID, RACING_ID));
         assertThat(exception.getStatus()).isEqualTo(NO_SUCH_SCHEDULE);
     }
 
     @Test
-    @DisplayName("acceptRacing: 사용자들의 포인트가 부족하면 예외 발생")
-    void acceptRacing_WhenNotEnoughPoints_ShouldThrowException() {
+    void acceptRacing_사용자포인트부족_예외() {
         // Given
         given(racingRepository.existsByIdAndRaceStatusAndStatus(RACING_ID, WAIT, Status.ALIVE)).willReturn(true);
         given(racingRepository.checkBothMemberHaveEnoughRacingPoint(RACING_ID)).willReturn(false);
 
         // When & Then
-        assertThrows(NotEnoughPointException.class, 
+        assertThrows(NotEnoughPointException.class,
             () -> racingService.acceptRacing(MEMBER_ID, SCHEDULE_ID, RACING_ID));
     }
 
     @Test
-    @DisplayName("denyRacing: 레이싱 거절 성공")
-    void denyRacing_ShouldDenyRacing() {
+    void denyRacing_정상() {
         // Given
         Schedule schedule = mock(Schedule.class);
         AlarmMemberInfo memberInfo = mock(AlarmMemberInfo.class);
-        
+
         given(schedule.getScheduleName()).willReturn(SCHEDULE_NAME);
         given(racingRepository.existsByIdAndRaceStatusAndStatus(RACING_ID, WAIT, Status.ALIVE)).willReturn(true);
         given(racingRepository.checkMemberIsSecondRacerInRacing(MEMBER_ID, RACING_ID)).willReturn(true);
@@ -368,7 +355,7 @@ public class RacingServiceTest {
         // Then
         assertThat(result).isEqualTo(RACING_ID);
         then(racingRepository).should().cancelRacing(RACING_ID);
-        
+
         // RacingDeniedMessage 검증
         then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), racingDeniedMessageCaptor.capture());
         RacingDeniedMessage capturedDeniedMessage = racingDeniedMessageCaptor.getValue();
@@ -381,60 +368,57 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("denyRacing: 레이싱이 대기 중이 아니면 예외 발생")
-    void denyRacing_WhenRacingNotWaiting_ShouldThrowException() {
+    void denyRacing_레이싱이대기중이아님_예외() {
         // Given
         given(racingRepository.existsByIdAndRaceStatusAndStatus(RACING_ID, WAIT, Status.ALIVE)).willReturn(false);
 
         // When & Then
-        ScheduleException exception = assertThrows(ScheduleException.class, 
+        ScheduleException exception = assertThrows(ScheduleException.class,
             () -> racingService.denyRacing(MEMBER_ID, SCHEDULE_ID, RACING_ID));
         assertThat(exception.getStatus()).isEqualTo(NO_SUCH_SCHEDULE);
     }
 
     @Test
-    @DisplayName("denyRacing: 사용자가 두 번째 레이서가 아니면 예외 발생")
-    void denyRacing_WhenMemberIsNotSecondRacer_ShouldThrowException() {
+    void denyRacing_사용자가두번째레이서가아님_예외() {
         // Given
         given(racingRepository.existsByIdAndRaceStatusAndStatus(RACING_ID, WAIT, Status.ALIVE)).willReturn(true);
         given(racingRepository.checkMemberIsSecondRacerInRacing(MEMBER_ID, RACING_ID)).willReturn(false);
 
         // When & Then
-        RacingException exception = assertThrows(RacingException.class, 
+        RacingException exception = assertThrows(RacingException.class,
             () -> racingService.denyRacing(MEMBER_ID, SCHEDULE_ID, RACING_ID));
         assertThat(exception.getStatus()).isEqualTo(NOT_IN_RACING);
     }
 
     @Test
-    @DisplayName("makeMemberWinnerInRacing: 사용자를 레이싱 우승자로 설정 성공")
-    void makeMemberWinnerInRacing_ShouldMakeMemberWinner() {
+    void makeMemberWinnerInRacing_정상() {
         // Given
         AlarmMemberInfo memberInfo = mock(AlarmMemberInfo.class);
         AlarmMemberInfo targetMemberInfo = mock(AlarmMemberInfo.class);
-        
+
         given(scheduleRepository.findScheduleMemberIdByMemberAndScheduleId(MEMBER_ID, SCHEDULE_ID))
             .willReturn(Optional.of(SCHEDULE_MEMBER_ID));
-        
+
         RunningRacingDto racingDto = new RunningRacingDto(
             RACING_ID, SCHEDULE_MEMBER_ID, TARGET_SCHEDULE_MEMBER_ID, POINT_AMOUNT
         );
         given(racingRepository.findRunningRacingsByScheduleMemberId(SCHEDULE_MEMBER_ID))
             .willReturn(Collections.singletonList(racingDto));
-        
+
         given(memberRepository.findMemberInfoByScheduleMemberId(SCHEDULE_MEMBER_ID))
             .willReturn(Optional.of(memberInfo));
         given(memberRepository.findMemberInfoByScheduleMemberId(TARGET_SCHEDULE_MEMBER_ID))
             .willReturn(Optional.of(targetMemberInfo));
-        
+
         given(racingRepository.findRacersFcmTokensInRacing(RACING_ID))
             .willReturn(Arrays.asList(MEMBER_FCM_TOKEN, TARGET_MEMBER_FCM_TOKEN));
-        
+
         // When
         racingService.makeMemberWinnerInRacing(MEMBER_ID, SCHEDULE_ID, SCHEDULE_NAME);
-        
+
         // Then
         then(racingRepository).should().setWinnerAndTermRacingByScheduleMemberId(SCHEDULE_MEMBER_ID);
-        
+
         // PointChangedMessage 검증
         then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), pointChangedMessageCaptor.capture());
         PointChangedMessage capturedPointMessage = pointChangedMessageCaptor.getValue();
@@ -443,7 +427,7 @@ public class RacingServiceTest {
         assertThat(capturedPointMessage.getPointAmount()).isEqualTo(POINT_AMOUNT * 2);
         assertThat(capturedPointMessage.getReason()).isEqualTo(PointChangeReason.RACING_REWARD);
         assertThat(capturedPointMessage.getReasonId()).isEqualTo(RACING_ID);
-        
+
         // RacingTermMessage 검증
         then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), racingTermMessageCaptor.capture());
         RacingTermMessage capturedTermMessage = racingTermMessageCaptor.getValue();
@@ -458,40 +442,39 @@ public class RacingServiceTest {
     }
 
     @Test
-    @DisplayName("terminateRunningRacing: 모든 진행 중인 레이싱 종료 처리")
-    void terminateRunningRacing_ShouldTerminateAllRunningRacings() {
+    void terminateRunningRacing_정상() {
         // Given
         AlarmMemberInfo memberInfo = mock(AlarmMemberInfo.class);
         AlarmMemberInfo targetMemberInfo = mock(AlarmMemberInfo.class);
-        
+
         TermRacingDto racingDto = new TermRacingDto(
             RACING_ID, SCHEDULE_MEMBER_ID, TARGET_SCHEDULE_MEMBER_ID, POINT_AMOUNT
         );
         given(racingRepository.findTermRacingIdsWithNoWinnerInSchedule(SCHEDULE_ID))
             .willReturn(Collections.singletonList(racingDto));
-        
+
         given(memberRepository.findMemberInfoByScheduleMemberId(SCHEDULE_MEMBER_ID))
             .willReturn(Optional.of(memberInfo));
         given(memberRepository.findMemberInfoByScheduleMemberId(TARGET_SCHEDULE_MEMBER_ID))
             .willReturn(Optional.of(targetMemberInfo));
-        
+
         // When
         racingService.terminateRunningRacing(SCHEDULE_ID);
-        
+
         // Then
         then(racingRepository).should().terminateRunningRacing(SCHEDULE_ID);
-        
+
         // PointChangedMessage 검증 (2개 메시지)
         then(kafkaService).should(times(2)).sendMessage(eq(KafkaTopic.ALARM), pointChangedMessageCaptor.capture());
         List<PointChangedMessage> pointChangedMessages = pointChangedMessageCaptor.getAllValues();
-        
+
         // 첫 번째 메시지 검증
         assertThat(pointChangedMessages.get(0).getMemberId()).isEqualTo(memberInfo.getMemberId());
         assertThat(pointChangedMessages.get(0).getPointChangedType()).isEqualTo(PointChangedType.PLUS);
         assertThat(pointChangedMessages.get(0).getPointAmount()).isEqualTo(POINT_AMOUNT);
         assertThat(pointChangedMessages.get(0).getReason()).isEqualTo(PointChangeReason.RACING_DRAW);
         assertThat(pointChangedMessages.get(0).getReasonId()).isEqualTo(RACING_ID);
-        
+
         // 두 번째 메시지 검증
         assertThat(pointChangedMessages.get(1).getMemberId()).isEqualTo(targetMemberInfo.getMemberId());
         assertThat(pointChangedMessages.get(1).getPointChangedType()).isEqualTo(PointChangedType.PLUS);
