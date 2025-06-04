@@ -44,14 +44,17 @@ public class MapServiceTest {
     @Mock ScheduleLocationRepository scheduleLocationRepository;
     @Mock ArrivalRepository arrivalRepository;
     @Mock ApplicationEventPublisher publisher;
+    @InjectMocks MapService mapService;
 
-    @InjectMocks
-    MapService mapService;
+    @Captor ArgumentCaptor<EmojiMessage> emojiMessageArgumentCaptor;
+    @Captor ArgumentCaptor<MemberArrivalEvent> memberArrivalEventCaptor;
+    @Captor ArgumentCaptor<ScheduleCloseEvent> scheduleCloseEventCaptor;
+    @Captor ArgumentCaptor<ArrivalAlarmMessage> alarmMessageArgumentCaptor;
 
-    Long memberId = 1L;
-    Long scheduleId = 10L;
-    String scheduleName = "testSchedule";
-    LocalDateTime now = LocalDateTime.now();
+    private final Long MEMBER_ID = 1L;
+    private final Long SCHEDULE_ID = 10L;
+    private final String SCHEDULE_NAME = "testSchedule";
+    private final LocalDateTime NOW = LocalDateTime.now();
 
     @Test
     void getScheduleDetail_정상() {
@@ -61,12 +64,12 @@ public class MapServiceTest {
         given(schedule.getLocation()).willReturn(location);
 
         List<ScheduleMemberResDto> members = List.of(mock(ScheduleMemberResDto.class));
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.of(schedule));
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.getScheduleMembersInfo(scheduleId)).willReturn(members);
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.of(schedule));
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.getScheduleMembersInfo(SCHEDULE_ID)).willReturn(members);
 
         // When
-        ScheduleDetailResDto res = mapService.getScheduleDetail(memberId, scheduleId);
+        ScheduleDetailResDto res = mapService.getScheduleDetail(MEMBER_ID, SCHEDULE_ID);
 
         // Then
         assertThat(res).isNotNull();
@@ -77,20 +80,20 @@ public class MapServiceTest {
     @Test
     void getScheduleDetail_스케줄없음_예외() {
         // Given
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.empty());
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.empty());
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.getScheduleDetail(memberId, scheduleId));
+        assertThrows(ScheduleException.class, () -> mapService.getScheduleDetail(MEMBER_ID, SCHEDULE_ID));
     }
 
     @Test
     void getScheduleDetail_멤버없음_예외() {
         // Given
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.of(mock(Schedule.class)));
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(false);
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.of(mock(Schedule.class)));
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.getScheduleDetail(memberId, scheduleId));
+        assertThrows(ScheduleException.class, () -> mapService.getScheduleDetail(MEMBER_ID, SCHEDULE_ID));
     }
 
     @Test
@@ -98,36 +101,36 @@ public class MapServiceTest {
         // Given
         RealTimeLocationDto dto = new RealTimeLocationDto(1.0, 2.0);
         List<RealTimeLocationResDto> locs = List.of(mock(RealTimeLocationResDto.class));
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleLocationRepository.getScheduleLocations(scheduleId)).willReturn(locs);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleLocationRepository.getScheduleLocations(SCHEDULE_ID)).willReturn(locs);
 
         // When
-        LocationsResponseDto res = mapService.saveAndSendAllLocation(memberId, scheduleId, dto);
+        LocationsResponseDto res = mapService.saveAndSendAllLocation(MEMBER_ID, SCHEDULE_ID, dto);
 
         // Then
         assertThat(res.getCount()).isEqualTo(locs.size());
         assertThat(res.getLocations()).isEqualTo(locs);
-        then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
+        then(scheduleLocationRepository).should().saveLocation(SCHEDULE_ID, MEMBER_ID, 1.0, 2.0);
     }
 
     @Test
     void saveAndSendAllLocation_멤버없음_예외() {
         // Given
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.saveAndSendAllLocation(memberId, scheduleId, new RealTimeLocationDto(1.0,2.0)));
+        assertThrows(ScheduleException.class, () -> mapService.saveAndSendAllLocation(MEMBER_ID, SCHEDULE_ID, new RealTimeLocationDto(1.0,2.0)));
     }
 
     @Test
     void getAllLocation_정상() {
         // Given
         List<RealTimeLocationResDto> locs = List.of(mock(RealTimeLocationResDto.class));
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleLocationRepository.getScheduleLocations(scheduleId)).willReturn(locs);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleLocationRepository.getScheduleLocations(SCHEDULE_ID)).willReturn(locs);
 
         // When
-        LocationsResponseDto res = mapService.getAllLocation(memberId, scheduleId);
+        LocationsResponseDto res = mapService.getAllLocation(MEMBER_ID, SCHEDULE_ID);
 
         // Then
         assertThat(res.getCount()).isEqualTo(locs.size());
@@ -137,10 +140,10 @@ public class MapServiceTest {
     @Test
     void getAllLocation_멤버없음_예외() {
         // Given
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.getAllLocation(memberId, scheduleId));
+        assertThrows(ScheduleException.class, () -> mapService.getAllLocation(MEMBER_ID, SCHEDULE_ID));
     }
 
     @Test
@@ -149,41 +152,38 @@ public class MapServiceTest {
         Schedule schedule = mock(Schedule.class);
         ScheduleMember scheduleMember = mock(ScheduleMember.class);
         Location location = new Location("Location1",1.0, 2.0);
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(scheduleId, RUN, Status.ALIVE)).willReturn(true);
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.of(schedule));
-        given(scheduleRepository.findScheduleMember(memberId, scheduleId)).willReturn(Optional.of(scheduleMember));
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.of(schedule));
+        given(scheduleRepository.findScheduleMember(MEMBER_ID, SCHEDULE_ID)).willReturn(Optional.of(scheduleMember));
         given(schedule.getLocation()).willReturn(location);
-        given(schedule.getScheduleName()).willReturn(scheduleName);
-        given(arrivalRepository.isAllMembersInScheduleArrived(scheduleId)).willReturn(true);
+        given(schedule.getScheduleName()).willReturn(SCHEDULE_NAME);
+        given(arrivalRepository.isAllMembersInScheduleArrived(SCHEDULE_ID)).willReturn(true);
 
         // When
-        MemberArrivalDto dto = new MemberArrivalDto(now);
-        Long res = mapService.makeMemberArrive(memberId, scheduleId, dto);
+        MemberArrivalDto dto = new MemberArrivalDto(NOW);
+        Long res = mapService.makeMemberArrive(MEMBER_ID, SCHEDULE_ID, dto);
 
         // Then
-        assertThat(res).isEqualTo(scheduleId);
+        assertThat(res).isEqualTo(SCHEDULE_ID);
         then(arrivalRepository).should().save(any(Arrival.class));
-        then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
-        then(scheduleLocationRepository).should().updateArrivalStatus(scheduleId, memberId, true);
-
-        ArgumentCaptor<MemberArrivalEvent> memberArrivalEventCaptor = ArgumentCaptor.forClass(MemberArrivalEvent.class);
-        ArgumentCaptor<ScheduleCloseEvent> scheduleCloseEventCaptor = ArgumentCaptor.forClass(ScheduleCloseEvent.class);
+        then(scheduleLocationRepository).should().saveLocation(SCHEDULE_ID, MEMBER_ID, 1.0, 2.0);
+        then(scheduleLocationRepository).should().updateArrivalStatus(SCHEDULE_ID, MEMBER_ID, true);
 
         then(publisher).should().publishEvent(memberArrivalEventCaptor.capture());
         then(publisher).should().publishEvent(scheduleCloseEventCaptor.capture());
 
         // MemberArrivalEvent 검증
         MemberArrivalEvent capturedMemberArrivalEvent = memberArrivalEventCaptor.getValue();
-        assertThat(capturedMemberArrivalEvent.getMemberId()).isEqualTo(memberId);
-        assertThat(capturedMemberArrivalEvent.getScheduleId()).isEqualTo(scheduleId);
-        assertThat(capturedMemberArrivalEvent.getScheduleName()).isEqualTo(scheduleName);
-        assertThat(capturedMemberArrivalEvent.getArrivalTime()).isEqualTo(now);
+        assertThat(capturedMemberArrivalEvent.getMemberId()).isEqualTo(MEMBER_ID);
+        assertThat(capturedMemberArrivalEvent.getScheduleId()).isEqualTo(SCHEDULE_ID);
+        assertThat(capturedMemberArrivalEvent.getScheduleName()).isEqualTo(SCHEDULE_NAME);
+        assertThat(capturedMemberArrivalEvent.getArrivalTime()).isEqualTo(NOW);
 
         // ScheduleCloseEvent 검증
         ScheduleCloseEvent capturedScheduleCloseEvent = scheduleCloseEventCaptor.getValue();
-        assertThat(capturedScheduleCloseEvent.getScheduleId()).isEqualTo(scheduleId);
-        assertThat(capturedScheduleCloseEvent.getCloseTime()).isEqualTo(now);
+        assertThat(capturedScheduleCloseEvent.getScheduleId()).isEqualTo(SCHEDULE_ID);
+        assertThat(capturedScheduleCloseEvent.getCloseTime()).isEqualTo(NOW);
     }
 
     @Test
@@ -192,54 +192,52 @@ public class MapServiceTest {
         Schedule schedule = mock(Schedule.class);
         ScheduleMember scheduleMember = mock(ScheduleMember.class);
         Location location = new Location("Location1", 1.0, 2.0);
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(scheduleId, RUN, Status.ALIVE)).willReturn(true);
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.of(schedule));
-        given(scheduleRepository.findScheduleMember(memberId, scheduleId)).willReturn(Optional.of(scheduleMember));
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.of(schedule));
+        given(scheduleRepository.findScheduleMember(MEMBER_ID, SCHEDULE_ID)).willReturn(Optional.of(scheduleMember));
         given(schedule.getLocation()).willReturn(location);
-        given(schedule.getScheduleName()).willReturn(scheduleName);
-        given(arrivalRepository.isAllMembersInScheduleArrived(scheduleId)).willReturn(false);
+        given(schedule.getScheduleName()).willReturn(SCHEDULE_NAME);
+        given(arrivalRepository.isAllMembersInScheduleArrived(SCHEDULE_ID)).willReturn(false);
 
         // When
-        MemberArrivalDto dto = new MemberArrivalDto(now);
-        Long res = mapService.makeMemberArrive(memberId, scheduleId, dto);
+        MemberArrivalDto dto = new MemberArrivalDto(NOW);
+        Long res = mapService.makeMemberArrive(MEMBER_ID, SCHEDULE_ID, dto);
 
         // Then
-        assertThat(res).isEqualTo(scheduleId);
+        assertThat(res).isEqualTo(SCHEDULE_ID);
         then(arrivalRepository).should().save(any(Arrival.class));
-        then(scheduleLocationRepository).should().saveLocation(scheduleId, memberId, 1.0, 2.0);
-        then(scheduleLocationRepository).should().updateArrivalStatus(scheduleId, memberId, true);
-
-        ArgumentCaptor<MemberArrivalEvent> memberArrivalEventCaptor = ArgumentCaptor.forClass(MemberArrivalEvent.class);
+        then(scheduleLocationRepository).should().saveLocation(SCHEDULE_ID, MEMBER_ID, 1.0, 2.0);
+        then(scheduleLocationRepository).should().updateArrivalStatus(SCHEDULE_ID, MEMBER_ID, true);
 
         then(publisher).should().publishEvent(memberArrivalEventCaptor.capture());
         then(publisher).should(never()).publishEvent(any(ScheduleCloseEvent.class));
 
         // MemberArrivalEvent 검증
         MemberArrivalEvent capturedMemberArrivalEvent = memberArrivalEventCaptor.getValue();
-        assertThat(capturedMemberArrivalEvent.getMemberId()).isEqualTo(memberId);
-        assertThat(capturedMemberArrivalEvent.getScheduleId()).isEqualTo(scheduleId);
-        assertThat(capturedMemberArrivalEvent.getScheduleName()).isEqualTo(scheduleName);
-        assertThat(capturedMemberArrivalEvent.getArrivalTime()).isEqualTo(now);
+        assertThat(capturedMemberArrivalEvent.getMemberId()).isEqualTo(MEMBER_ID);
+        assertThat(capturedMemberArrivalEvent.getScheduleId()).isEqualTo(SCHEDULE_ID);
+        assertThat(capturedMemberArrivalEvent.getScheduleName()).isEqualTo(SCHEDULE_NAME);
+        assertThat(capturedMemberArrivalEvent.getArrivalTime()).isEqualTo(NOW);
     }
 
     @Test
     void makeMemberArrive_멤버없음_예외() {
         // Given
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(memberId, scheduleId, new MemberArrivalDto(now)));
+        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(MEMBER_ID, SCHEDULE_ID, new MemberArrivalDto(NOW)));
     }
 
     @Test
     void makeMemberArrive_스케줄상태_예외() {
         // Given
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(scheduleId, RUN, Status.ALIVE)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(memberId, scheduleId, new MemberArrivalDto(now)));
+        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(MEMBER_ID, SCHEDULE_ID, new MemberArrivalDto(NOW)));
     }
 
     @Test
@@ -249,59 +247,58 @@ public class MapServiceTest {
         AlarmMemberInfo sender = mock(AlarmMemberInfo.class);
         AlarmMemberInfo receiver = mock(AlarmMemberInfo.class);
         Schedule schedule = mock(Schedule.class);
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(scheduleId, RUN, Status.ALIVE)).willReturn(true);
-        given(memberRepository.findMemberInfo(memberId)).willReturn(Optional.of(sender));
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
+        given(memberRepository.findMemberInfo(MEMBER_ID)).willReturn(Optional.of(sender));
         given(memberRepository.findMemberInfo(2L)).willReturn(Optional.of(receiver));
         given(memberRepository.findMemberFirebaseTokenById(2L)).willReturn(Optional.of("token"));
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.of(schedule));
-        given(schedule.getScheduleName()).willReturn(scheduleName);
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.of(schedule));
+        given(schedule.getScheduleName()).willReturn(SCHEDULE_NAME);
 
         // When
-        Long res = mapService.sendEmoji(memberId, scheduleId, emojiDto);
+        Long res = mapService.sendEmoji(MEMBER_ID, SCHEDULE_ID, emojiDto);
 
         // Then
-        assertThat(res).isEqualTo(scheduleId);
+        assertThat(res).isEqualTo(SCHEDULE_ID);
 
-        ArgumentCaptor<EmojiMessage> emojiMessageArgumentCaptor = ArgumentCaptor.forClass(EmojiMessage.class);
         then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), emojiMessageArgumentCaptor.capture());
 
         EmojiMessage capturedEmojiMessage = emojiMessageArgumentCaptor.getValue();
         assertThat(capturedEmojiMessage.getSenderInfo()).isEqualTo(sender);
         assertThat(capturedEmojiMessage.getReceiverInfo()).isEqualTo(receiver);
         assertThat(capturedEmojiMessage.getAlarmMessageType()).isEqualTo(AlarmMessageType.EMOJI);
-        assertThat(capturedEmojiMessage.getScheduleId()).isEqualTo(scheduleId);
-        assertThat(capturedEmojiMessage.getScheduleName()).isEqualTo(scheduleName);
+        assertThat(capturedEmojiMessage.getScheduleId()).isEqualTo(SCHEDULE_ID);
+        assertThat(capturedEmojiMessage.getScheduleName()).isEqualTo(SCHEDULE_NAME);
     }
 
     @Test
     void sendEmoji_멤버없음_예외() {
         // Given
         EmojiDto emojiDto = new EmojiDto(2L, EmojiType.HEART);
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.sendEmoji(memberId, scheduleId, emojiDto));
+        assertThrows(ScheduleException.class, () -> mapService.sendEmoji(MEMBER_ID, SCHEDULE_ID, emojiDto));
     }
 
     @Test
     void sendEmoji_스케줄상태_예외() {
         // Given
         EmojiDto emojiDto = new EmojiDto(2L, EmojiType.HEART);
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(scheduleId, RUN, Status.ALIVE)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.sendEmoji(memberId, scheduleId, emojiDto));
+        assertThrows(ScheduleException.class, () -> mapService.sendEmoji(MEMBER_ID, SCHEDULE_ID, emojiDto));
     }
 
     @Test
     void deleteAllLocationsInSchedule_정상() {
         // Given
-        mapService.deleteAllLocationsInSchedule(scheduleId);
+        mapService.deleteAllLocationsInSchedule(SCHEDULE_ID);
 
         // When & Then
-        then(scheduleLocationRepository).should().deleteScheduleLocations(scheduleId);
+        then(scheduleLocationRepository).should().deleteScheduleLocations(SCHEDULE_ID);
     }
 
     @Test
@@ -310,10 +307,10 @@ public class MapServiceTest {
         ScheduleMember sm1 = mock(ScheduleMember.class);
         ScheduleMember sm2 = mock(ScheduleMember.class);
         List<ScheduleMember> notArrived = List.of(sm1, sm2);
-        given(scheduleRepository.findScheduleMembersNotInArrivalByScheduleId(scheduleId)).willReturn(notArrived);
+        given(scheduleRepository.findScheduleMembersNotInArrivalByScheduleId(SCHEDULE_ID)).willReturn(notArrived);
 
         // When
-        mapService.makeNotArrivedMemberArrive(scheduleId, now);
+        mapService.makeNotArrivedMemberArrive(SCHEDULE_ID, NOW);
 
         // Then
         then(arrivalRepository).should().saveAll(anyList());
@@ -324,23 +321,22 @@ public class MapServiceTest {
         // Given
         List<String> tokens = List.of("token1", "token2");
         AlarmMemberInfo info = mock(AlarmMemberInfo.class);
-        given(scheduleRepository.findAllFcmTokensInSchedule(scheduleId)).willReturn(tokens);
-        given(memberRepository.findMemberInfo(memberId)).willReturn(Optional.of(info));
+        given(scheduleRepository.findAllFcmTokensInSchedule(SCHEDULE_ID)).willReturn(tokens);
+        given(memberRepository.findMemberInfo(MEMBER_ID)).willReturn(Optional.of(info));
 
         // When
-        mapService.sendKafkaAlarmIfMemberArrived(memberId, scheduleId, scheduleName, now);
+        mapService.sendKafkaAlarmIfMemberArrived(MEMBER_ID, SCHEDULE_ID, SCHEDULE_NAME, NOW);
 
         // Then
-        ArgumentCaptor<ArrivalAlarmMessage> alarmMessageArgumentCaptor = ArgumentCaptor.forClass(ArrivalAlarmMessage.class);
         then(kafkaService).should().sendMessage(eq(KafkaTopic.ALARM), alarmMessageArgumentCaptor.capture());
 
         ArrivalAlarmMessage capturedMessage = alarmMessageArgumentCaptor.getValue();
         assertThat(capturedMessage.getAlarmReceiverTokens()).isEqualTo(tokens);
         assertThat(capturedMessage.getAlarmMessageType()).isEqualTo(AlarmMessageType.MEMBER_ARRIVAL);
-        assertThat(capturedMessage.getMemberId()).isEqualTo(memberId);
-        assertThat(capturedMessage.getScheduleId()).isEqualTo(scheduleId);
-        assertThat(capturedMessage.getScheduleName()).isEqualTo(scheduleName);
-        assertThat(capturedMessage.getArrivalTime()).isEqualTo(now);
+        assertThat(capturedMessage.getMemberId()).isEqualTo(MEMBER_ID);
+        assertThat(capturedMessage.getScheduleId()).isEqualTo(SCHEDULE_ID);
+        assertThat(capturedMessage.getScheduleName()).isEqualTo(SCHEDULE_NAME);
+        assertThat(capturedMessage.getArrivalTime()).isEqualTo(NOW);
         assertThat(capturedMessage.getArriveMemberInfo()).isEqualTo(info);
 
     }
@@ -348,7 +344,7 @@ public class MapServiceTest {
     @Test
     void sendKafkaEventIfScheduleClosed_정상() {
         // Given
-        mapService.sendKafkaEventIfScheduleClosed(scheduleId, now);
+        mapService.sendKafkaEventIfScheduleClosed(SCHEDULE_ID, NOW);
 
         // When & Then
         then(kafkaService).should().sendMessage(eq(KafkaTopic.SCHEDULE_CLOSE), any(ScheduleCloseMessage.class));
@@ -357,43 +353,43 @@ public class MapServiceTest {
     @Test
     void findSchedule_없으면_예외() {
         // Given
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.empty());
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThrows(ScheduleException.class, () -> {
             // private 메서드 테스트를 위해 public 메서드를 호출
-            mapService.getScheduleDetail(memberId, scheduleId);
+            mapService.getScheduleDetail(MEMBER_ID, SCHEDULE_ID);
         });
     }
 
     @Test
     void findScheduleMember_없으면_예외() {
         // Given
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(scheduleId, RUN, Status.ALIVE)).willReturn(true);
-        given(scheduleRepository.findById(scheduleId)).willReturn(Optional.of(mock(Schedule.class)));
-        given(scheduleRepository.findScheduleMember(memberId, scheduleId)).willReturn(Optional.empty());
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(true);
+        given(scheduleRepository.findById(SCHEDULE_ID)).willReturn(Optional.of(mock(Schedule.class)));
+        given(scheduleRepository.findScheduleMember(MEMBER_ID, SCHEDULE_ID)).willReturn(Optional.empty());
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(memberId, scheduleId, new MemberArrivalDto(now)));
+        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(MEMBER_ID, SCHEDULE_ID, new MemberArrivalDto(NOW)));
     }
 
     @Test
     void checkMemberInSchedule_없으면_예외() {
         // Given
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.getAllLocation(memberId, scheduleId));
+        assertThrows(ScheduleException.class, () -> mapService.getAllLocation(MEMBER_ID, SCHEDULE_ID));
     }
 
     @Test
     void checkScheduleInRun_없으면_예외() {
         // Given
-        given(scheduleRepository.existMemberInSchedule(memberId, scheduleId)).willReturn(true);
-        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(scheduleId, RUN, Status.ALIVE)).willReturn(false);
+        given(scheduleRepository.existMemberInSchedule(MEMBER_ID, SCHEDULE_ID)).willReturn(true);
+        given(scheduleRepository.existsByIdAndScheduleStatusAndStatus(SCHEDULE_ID, RUN, Status.ALIVE)).willReturn(false);
 
         // When & Then
-        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(memberId, scheduleId, new MemberArrivalDto(now)));
+        assertThrows(ScheduleException.class, () -> mapService.makeMemberArrive(MEMBER_ID, SCHEDULE_ID, new MemberArrivalDto(NOW)));
     }
 }
