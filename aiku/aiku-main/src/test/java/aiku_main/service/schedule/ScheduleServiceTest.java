@@ -356,25 +356,22 @@ class ScheduleServiceTest {
         given(nextOwnerScheduleMember.getMember()).willReturn(nextOwner);
         given(nextOwner.getFirebaseToken()).willReturn("token");
 
-        ArgumentCaptor<ScheduleAlarmMessage> ownerAlarmCaptor = ArgumentCaptor.forClass(ScheduleAlarmMessage.class);
-        ArgumentCaptor<ScheduleMemberAlarmMessage> exitAlarmCaptor = ArgumentCaptor.forClass(ScheduleMemberAlarmMessage.class);
-
         // when
         Long resultId = scheduleService.exitSchedule(ownerMemberId, TEAM_ID, SCHEDULE_ID);
 
         // then
         assertThat(resultId).isEqualTo(SCHEDULE_ID);
         then(schedule).should().changeScheduleOwner(nextOwnerScheduleMember);
-        then(kafkaProducerService).should().sendMessage(eq(ALARM), ownerAlarmCaptor.capture());
+        then(kafkaProducerService).should().sendMessage(eq(ALARM), scheduleAlarmMessageCaptor.capture());
 
-        ScheduleAlarmMessage capturedOwnerAlarmMessage = ownerAlarmCaptor.getValue();
+        ScheduleAlarmMessage capturedOwnerAlarmMessage = scheduleAlarmMessageCaptor.getValue();
         assertThat(capturedOwnerAlarmMessage.getScheduleId()).isEqualTo(SCHEDULE_ID);
         assertThat(capturedOwnerAlarmMessage.getAlarmMessageType()).isEqualTo(SCHEDULE_OWNER);
 
         then(schedule).should().removeScheduleMember(ownerScheduleMember);
-        then(kafkaProducerService).should().sendMessage(eq(ALARM), exitAlarmCaptor.capture());
+        then(kafkaProducerService).should().sendMessage(eq(ALARM), scheduleMemberAlarmMessageCaptor.capture());
 
-        ScheduleMemberAlarmMessage capturedExitAlarmMessage = exitAlarmCaptor.getValue();
+        ScheduleMemberAlarmMessage capturedExitAlarmMessage = scheduleMemberAlarmMessageCaptor.getValue();
         assertThat(capturedExitAlarmMessage.getScheduleId()).isEqualTo(SCHEDULE_ID);
         assertThat(capturedExitAlarmMessage.getAlarmMessageType()).isEqualTo(AlarmMessageType.SCHEDULE_EXIT);
 
@@ -405,9 +402,7 @@ class ScheduleServiceTest {
         given(schedule.getId()).willReturn(SCHEDULE_ID);
         given(schedule.isWait()).willReturn(true);
         given(scheduleRepository.countOfScheduleMembers(SCHEDULE_ID)).willReturn(1L); // 마지막 멤버
-
-        ArgumentCaptor<ScheduleMemberAlarmMessage> exitAlarmCaptor = ArgumentCaptor.forClass(ScheduleMemberAlarmMessage.class);
-
+        
         // when
         Long resultId = scheduleService.exitSchedule(MEMBER_ID, TEAM_ID, SCHEDULE_ID);
 
@@ -417,9 +412,9 @@ class ScheduleServiceTest {
         then(schedule).should().removeScheduleMember(ownerScheduleMember);
 
         then(scheduleRepository).should().findAlarmTokenListOfScheduleMembers(SCHEDULE_ID, MEMBER_ID);
-        then(kafkaProducerService).should().sendMessage(eq(ALARM), exitAlarmCaptor.capture());
+        then(kafkaProducerService).should().sendMessage(eq(ALARM), scheduleMemberAlarmMessageCaptor.capture());
 
-        ScheduleMemberAlarmMessage capturedExitAlarmMessage = exitAlarmCaptor.getValue();
+        ScheduleMemberAlarmMessage capturedExitAlarmMessage = scheduleMemberAlarmMessageCaptor.getValue();
         assertThat(capturedExitAlarmMessage.getScheduleId()).isEqualTo(SCHEDULE_ID);
         assertThat(capturedExitAlarmMessage.getAlarmMessageType()).isEqualTo(AlarmMessageType.SCHEDULE_EXIT);
 
