@@ -8,7 +8,8 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 public class TeamScheduleListEachResDto {
@@ -22,7 +23,7 @@ public class TeamScheduleListEachResDto {
     private boolean accept = false;
 
     @JsonIgnore
-    List<Long> membersIdList;
+    Set<Long> membersIdList;
 
     @QueryProjection
     public TeamScheduleListEachResDto(Long scheduleId,
@@ -39,15 +40,13 @@ public class TeamScheduleListEachResDto {
 
         membersIdList = Arrays.stream(membersIdStringList.split(","))
                 .map(Long::parseLong)
-                .toList();
+                .collect(Collectors.toSet());
         this.memberSize = membersIdList.size();
     }
 
-    public void setAccept(Long memberId){
-        for (Long acceptId : membersIdList) {
-            if(memberId.equals(acceptId)){
-                this.accept = true;
-            }
+    public void SetAcceptIfEntered(Long memberId){
+        if(membersIdList.contains(memberId)){
+            this.accept = true;
         }
     }
 }
