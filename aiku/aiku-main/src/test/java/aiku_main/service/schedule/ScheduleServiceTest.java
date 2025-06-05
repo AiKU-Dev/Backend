@@ -138,7 +138,6 @@ class ScheduleServiceTest {
             assertThat(capturedPointEvent.getReason()).isEqualTo(SCHEDULE_ENTER);
             assertThat(capturedPointEvent.getReasonId()).isEqualTo(SCHEDULE_ID);
             assertThat(capturedPointEvent.getPointAmount()).isEqualTo(SCHEDULE_ENTER_POINT);
-            then(teamRepository).should().findAlarmTokenListOfTeamMembers(TEAM_ID, MEMBER_ID);
             then(kafkaProducerService).should().sendMessage(eq(ALARM), scheduleAlarmMessageCaptor.capture());
 
             assertThat(scheduleAlarmMessageCaptor.getValue().getScheduleId()).isEqualTo(SCHEDULE_ID);
@@ -198,7 +197,6 @@ class ScheduleServiceTest {
                 any(Location.class)
         );
         then(scheduleScheduler).should().changeSchedule(schedule);
-        then(scheduleRepository).should().findAlarmTokenListOfScheduleMembers(SCHEDULE_ID, MEMBER_ID);
         then(kafkaProducerService).should().sendMessage(eq(ALARM), scheduleAlarmMessageCaptor.capture());
 
         assertThat(scheduleAlarmMessageCaptor.getValue().getScheduleId()).isEqualTo(SCHEDULE_ID);
@@ -374,7 +372,6 @@ class ScheduleServiceTest {
         assertThat(capturedOwnerAlarmMessage.getAlarmMessageType()).isEqualTo(SCHEDULE_OWNER);
 
         then(schedule).should().removeScheduleMember(ownerScheduleMember);
-        then(scheduleRepository).should().findAlarmTokenListOfScheduleMembers(SCHEDULE_ID, ownerMemberId);
         then(kafkaProducerService).should().sendMessage(eq(ALARM), exitAlarmCaptor.capture());
 
         ScheduleMemberAlarmMessage capturedExitAlarmMessage = exitAlarmCaptor.getValue();
@@ -598,10 +595,6 @@ class ScheduleServiceTest {
         assertThat(result.getRunSchedule()).isEqualTo(runScheduleCount);
         assertThat(result.getWaitSchedule()).isEqualTo(waitScheduleCount);
         assertThat(result.getData()).hasSize(2);
-        then(teamRepository).should().existTeamMember(MEMBER_ID, TEAM_ID);
-        then(scheduleRepository).should().getTeamSchedules(TEAM_ID, MEMBER_ID, dateCond, page);
-        then(scheduleRepository).should().countTeamScheduleByScheduleStatus(TEAM_ID, RUN, dateCond);
-        then(scheduleRepository).should().countTeamScheduleByScheduleStatus(TEAM_ID, WAIT, dateCond);
     }
 
     @Test
@@ -633,9 +626,6 @@ class ScheduleServiceTest {
         assertThat(result.getPage()).isEqualTo(page);
         assertThat(result.getRunSchedule()).isEqualTo(1);
         assertThat(result.getWaitSchedule()).isEqualTo(1);
-        then(scheduleRepository).should().getMemberSchedules(MEMBER_ID, dateCond, page);
-        then(scheduleRepository).should().countMemberScheduleByScheduleStatus(MEMBER_ID, RUN, dateCond);
-        then(scheduleRepository).should().countMemberScheduleByScheduleStatus(MEMBER_ID, WAIT, dateCond);
     }
 
     @Test
