@@ -13,7 +13,7 @@ import common.domain.member.Member;
 import common.domain.member.MemberProfile;
 import common.domain.member.MemberProfileType;
 import common.domain.value_reference.TitleMemberValue;
-import common.exception.NotEnoughPoint;
+import common.exception.NotEnoughPointException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -158,7 +158,7 @@ public class MemberService {
 
     private void checkEnoughPoint(int memberPoint, int changePoint) {
         if (memberPoint < changePoint) {
-            throw new NotEnoughPoint();
+            throw new NotEnoughPointException();
         }
     }
 

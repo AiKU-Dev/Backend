@@ -16,7 +16,7 @@ import common.domain.member.Member;
 import common.domain.schedule.Schedule;
 import common.domain.schedule.ScheduleResult;
 import common.domain.value_reference.TeamValue;
-import common.exception.NotEnoughPoint;
+import common.exception.NotEnoughPointException;
 import common.kafka_message.alarm.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -82,7 +82,7 @@ public class ScheduleService {
                 SCHEDULE_ENTER,
                 schedule.getId()
         );
-        sendMessageToTeamMembers(teamId, schedule, member.getId(), AlarmMessageType.SCHEDULE_ADD);
+        sendMessageToTeamMembers(teamId, schedule, memberId, AlarmMessageType.SCHEDULE_ADD);
 
         return schedule.getId();
     }
@@ -141,7 +141,7 @@ public class ScheduleService {
                 scheduleId
         );
 
-        return schedule.getId();
+        return scheduleId;
     }
 
     @Transactional
@@ -261,7 +261,8 @@ public class ScheduleService {
         checkTeamMember(memberId, teamId);
 
         List<TeamScheduleListEachResDto> scheduleList = scheduleRepository.getTeamSchedules(teamId, memberId, dateCond, page);
-        scheduleList.forEach((schedule) -> schedule.setAccept(memberId));
+        scheduleList.forEach((scheduleDto) -> scheduleDto.SetAcceptIfEntered(memberId));
+
         int runSchedule = scheduleRepository.countTeamScheduleByScheduleStatus(teamId, RUN, dateCond);
         int waitSchedule = scheduleRepository.countTeamScheduleByScheduleStatus(teamId, WAIT, dateCond);
 
@@ -426,7 +427,7 @@ public class ScheduleService {
 
     private void checkEnoughPoint(Member member, int point){
         if(member.getPoint() < point){
-            throw new NotEnoughPoint();
+            throw new NotEnoughPointException();
         }
     }
 

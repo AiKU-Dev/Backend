@@ -15,7 +15,7 @@ import common.domain.schedule.Schedule;
 import common.domain.schedule.ScheduleMember;
 import common.domain.value_reference.ScheduleMemberValue;
 import common.exception.BaseException;
-import common.exception.NotEnoughPoint;
+import common.exception.NotEnoughPointException;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -147,7 +147,7 @@ class BettingServiceIntegrationTest {
 
         //then
         assertThatThrownBy(() -> bettingService.addBetting(member1.getId(), schedule1.getId(), bettingDto))
-                .isInstanceOf(NotEnoughPoint.class);
+                .isInstanceOf(NotEnoughPointException.class);
     }
 
     @Test

@@ -13,7 +13,7 @@ import common.domain.betting.Betting;
 import common.domain.schedule.ScheduleMember;
 import common.domain.member.Member;
 import common.domain.value_reference.ScheduleMemberValue;
-import common.exception.NotEnoughPoint;
+import common.exception.NotEnoughPointException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,6 @@ import static aiku_main.application_event.event.PointChangeType.MINUS;
 import static aiku_main.application_event.event.PointChangeType.PLUS;
 import static common.domain.ExecStatus.WAIT;
 import static common.domain.Status.ALIVE;
-import static common.domain.Status.DELETE;
 import static common.response.status.BaseErrorCode.*;
 
 @RequiredArgsConstructor
@@ -249,7 +248,7 @@ public class BettingService {
 
     private void checkEnoughPoint(Member member, int point){
         if(member.getPoint() < point){
-            throw new NotEnoughPoint();
+            throw new NotEnoughPointException();
         }
     }
 }
