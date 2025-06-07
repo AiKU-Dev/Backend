@@ -7,9 +7,9 @@ import alarm.fcm.MessageSender;
 import alarm.repository.MemberMessageRepository;
 import alarm.repository.MemberRepository;
 import alarm.util.AlarmMessageConverter;
+import alarm.util.ReflectionJsonUtil;
 import common.domain.MemberMessage;
 import common.kafka_message.alarm.AlarmMessage;
-import common.kafka_message.alarm.AlarmMessageType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -36,18 +36,17 @@ public class MemberMessageService {
         List<String> fcmTokens = message.getAlarmReceiverTokens();
         List<String> fcmTokensAlarmOn = memberRepository.findFirebaseTokenOnlyAlarmOn(fcmTokens);
 
-        Map<String, String> messageData = alarmMessageConverter.getMessage(message);
+        Map<String, String> messageData = getFCMMessage(message);
 
         messageSender.sendMessage(messageData, fcmTokensAlarmOn);
 
-        // 멤버 실시간 위치는 직접적인 알림이 아니기 때문에 제외
         List<Long> memberIds = memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens);
 
         if (memberIds.isEmpty()) {
             throw new MemberNotFoundException();
         }
 
-        String simpleAlarmInfo = alarmMessageConverter.getSimpleAlarmInfo(message);
+        String simpleAlarmInfo = message.accept(alarmMessageConverter);
 
         List<MemberMessage> memberMessages = new ArrayList<>();
         memberIds.forEach(memberId -> memberMessages.add(
@@ -70,5 +69,9 @@ public class MemberMessageService {
                 .collect(Collectors.toList());
 
         return new DataResDto<>(page, memberMessageDtoList);
+    }
+
+    public Map<String, String> getFCMMessage(AlarmMessage alarmMessage) {
+        return ReflectionJsonUtil.getAllFieldValuesRecursive(alarmMessage);
     }
 }

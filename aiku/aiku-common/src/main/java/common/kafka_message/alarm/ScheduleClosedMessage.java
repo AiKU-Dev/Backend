@@ -26,4 +26,9 @@ public class ScheduleClosedMessage extends AlarmMessage {
         this.scheduleTime = scheduleTime;
     }
 
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
+
 }

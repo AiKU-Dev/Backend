@@ -18,9 +18,10 @@ import java.util.List;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AlarmMessage {
+public abstract class AlarmMessage {
 
     private List<String> alarmReceiverTokens;
     private AlarmMessageType alarmMessageType;
+    public abstract String accept(AlarmMessageVisitor visitor);
 
 }

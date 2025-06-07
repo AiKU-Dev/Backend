@@ -1,6 +1,5 @@
 package alarm_message_test;
 
-import alarm.util.AlarmMessageConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import common.domain.member.MemberProfile;
