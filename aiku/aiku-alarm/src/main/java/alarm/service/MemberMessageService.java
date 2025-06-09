@@ -71,7 +71,7 @@ public class MemberMessageService {
         return new DataResDto<>(page, memberMessageDtoList);
     }
 
-    public Map<String, String> getFCMMessage(AlarmMessage alarmMessage) {
+    private Map<String, String> getFCMMessage(AlarmMessage alarmMessage) {
         return ReflectionJsonUtil.getAllFieldValuesRecursive(alarmMessage);
     }
 }
