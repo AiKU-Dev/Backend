@@ -5,14 +5,14 @@ import alarm.controller.dto.MemberMessageDto;
 import alarm.exception.MemberNotFoundException;
 import alarm.fcm.MessageSender;
 import alarm.repository.MemberMessageRepository;
-import alarm.repository.MemberRepository;
+import alarm.service.AlarmTokenFilter;
+import alarm.service.AlarmTokens;
 import alarm.service.MemberMessageService;
 import alarm.util.AlarmMessageConverter;
 import alarm.util.ReflectionJsonUtil;
 import common.domain.MemberMessage;
 import common.kafka_message.alarm.AlarmMessage;
 import common.kafka_message.alarm.AlarmMessageType;
-import common.kafka_message.alarm.ScheduleAlarmMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +23,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,9 +37,9 @@ import static org.mockito.Mockito.*;
 public class MemberMessageServiceTest {
 
     @Mock MemberMessageRepository memberMessageRepository;
-    @Mock MemberRepository memberRepository;
     @Mock MessageSender messageSender;
     @Mock AlarmMessageConverter alarmMessageConverter;
+    @Mock AlarmTokenFilter alarmTokenFilter;
     @InjectMocks MemberMessageService memberMessageService;
 
     @Test
@@ -51,10 +52,12 @@ public class MemberMessageServiceTest {
         Map<String, String> messageData = Map.of("key", "value");
         String simpleAlarmInfo = "테스트 알람 메시지";
 
+        AlarmTokens alarmTokens = new AlarmTokens(fcmTokensAlarmOn, memberIds);
+
         given(alarmMessage.getAlarmReceiverTokens()).willReturn(fcmTokens);
         given(alarmMessage.getAlarmMessageType()).willReturn(AlarmMessageType.SCHEDULE_ADD);
-        given(memberRepository.findFirebaseTokenOnlyAlarmOn(fcmTokens)).willReturn(fcmTokensAlarmOn);
-        given(memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens)).willReturn(memberIds);
+        given(alarmTokenFilter.filterAndValidate(fcmTokens)).willReturn(alarmTokens);
+        given(messageSender.sendMessage(messageData, fcmTokensAlarmOn)).willReturn(CompletableFuture.completedFuture(null));
         given(alarmMessage.accept(alarmMessageConverter)).willReturn(simpleAlarmInfo);
 
         try (MockedStatic<ReflectionJsonUtil> mockedReflectionUtil = mockStatic(ReflectionJsonUtil.class)) {
@@ -65,9 +68,8 @@ public class MemberMessageServiceTest {
             memberMessageService.sendAndSaveMessage(alarmMessage);
 
             // Then
-            then(memberRepository).should().findFirebaseTokenOnlyAlarmOn(fcmTokens);
+            then(alarmTokenFilter).should().filterAndValidate(fcmTokens);
             then(messageSender).should().sendMessage(messageData, fcmTokensAlarmOn);
-            then(memberRepository).should().findMemberIdsByFirebaseTokenList(fcmTokens);
             then(alarmMessage).should().accept(alarmMessageConverter);
             then(memberMessageRepository).should().saveAll(argThat(memberMessages -> {
                 List<MemberMessage> messages = (List<MemberMessage>) memberMessages;
@@ -89,9 +91,11 @@ public class MemberMessageServiceTest {
         List<Long> memberIds = Collections.emptyList();
         Map<String, String> messageData = Map.of("key", "value");
 
+        AlarmTokens alarmTokens = new AlarmTokens(fcmTokensAlarmOn, memberIds);
+
         given(alarmMessage.getAlarmReceiverTokens()).willReturn(fcmTokens);
-        given(memberRepository.findFirebaseTokenOnlyAlarmOn(fcmTokens)).willReturn(fcmTokensAlarmOn);
-        given(memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens)).willReturn(memberIds);
+        given(alarmTokenFilter.filterAndValidate(fcmTokens)).willReturn(alarmTokens);
+        given(messageSender.sendMessage(messageData, fcmTokensAlarmOn)).willReturn(CompletableFuture.completedFuture(null));
 
         try (MockedStatic<ReflectionJsonUtil> mockedReflectionUtil = mockStatic(ReflectionJsonUtil.class)) {
             mockedReflectionUtil.when(() -> ReflectionJsonUtil.getAllFieldValuesRecursive(alarmMessage))
@@ -102,9 +106,8 @@ public class MemberMessageServiceTest {
                 memberMessageService.sendAndSaveMessage(alarmMessage);
             });
 
-            then(memberRepository).should().findFirebaseTokenOnlyAlarmOn(fcmTokens);
+            then(alarmTokenFilter).should().filterAndValidate(fcmTokens);
             then(messageSender).should().sendMessage(messageData, fcmTokensAlarmOn);
-            then(memberRepository).should().findMemberIdsByFirebaseTokenList(fcmTokens);
             then(alarmMessage).should(never()).accept(any());
             then(memberMessageRepository).should(never()).saveAll(any());
         }
@@ -119,9 +122,10 @@ public class MemberMessageServiceTest {
         List<Long> memberIds = Collections.emptyList();
         Map<String, String> messageData = Map.of("key", "value");
 
+        AlarmTokens alarmTokens = new AlarmTokens(fcmTokensAlarmOn, memberIds);
+
         given(alarmMessage.getAlarmReceiverTokens()).willReturn(fcmTokens);
-        given(memberRepository.findFirebaseTokenOnlyAlarmOn(fcmTokens)).willReturn(fcmTokensAlarmOn);
-        given(memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens)).willReturn(memberIds);
+        given(alarmTokenFilter.filterAndValidate(fcmTokens)).willReturn(alarmTokens);
 
         try (MockedStatic<ReflectionJsonUtil> mockedReflectionUtil = mockStatic(ReflectionJsonUtil.class)) {
             mockedReflectionUtil.when(() -> ReflectionJsonUtil.getAllFieldValuesRecursive(alarmMessage))
@@ -132,9 +136,9 @@ public class MemberMessageServiceTest {
                 memberMessageService.sendAndSaveMessage(alarmMessage);
             });
 
-            then(memberRepository).should().findFirebaseTokenOnlyAlarmOn(fcmTokens);
-            then(messageSender).should().sendMessage(messageData, fcmTokensAlarmOn);
-            then(memberRepository).should().findMemberIdsByFirebaseTokenList(fcmTokens);
+            then(alarmTokenFilter).should().filterAndValidate(fcmTokens);
+            // 빈 토큰이므로 sendMessage 호출되지 않음
+            then(messageSender).should(never()).sendMessage(any(), any());
         }
     }
 
@@ -148,10 +152,11 @@ public class MemberMessageServiceTest {
         Map<String, String> messageData = Map.of("key", "value");
         String simpleAlarmInfo = "테스트 알람 메시지";
 
+        AlarmTokens alarmTokens = new AlarmTokens(fcmTokensAlarmOn, memberIds);
+
         given(alarmMessage.getAlarmReceiverTokens()).willReturn(fcmTokens);
         given(alarmMessage.getAlarmMessageType()).willReturn(AlarmMessageType.SCHEDULE_ADD);
-        given(memberRepository.findFirebaseTokenOnlyAlarmOn(fcmTokens)).willReturn(fcmTokensAlarmOn);
-        given(memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens)).willReturn(memberIds);
+        given(alarmTokenFilter.filterAndValidate(fcmTokens)).willReturn(alarmTokens);
         given(alarmMessage.accept(alarmMessageConverter)).willReturn(simpleAlarmInfo);
 
         try (MockedStatic<ReflectionJsonUtil> mockedReflectionUtil = mockStatic(ReflectionJsonUtil.class)) {
@@ -162,9 +167,9 @@ public class MemberMessageServiceTest {
             memberMessageService.sendAndSaveMessage(alarmMessage);
 
             // Then
-            then(memberRepository).should().findFirebaseTokenOnlyAlarmOn(fcmTokens);
-            then(messageSender).should().sendMessage(messageData, fcmTokensAlarmOn);
-            then(memberRepository).should().findMemberIdsByFirebaseTokenList(fcmTokens);
+            then(alarmTokenFilter).should().filterAndValidate(fcmTokens);
+            // activeTokens가 비어있으면 sendMessage가 early return되므로 호출되지 않음
+            then(messageSender).should(never()).sendMessage(any(), any());
             then(alarmMessage).should().accept(alarmMessageConverter);
             then(memberMessageRepository).should().saveAll(any());
         }
@@ -256,10 +261,12 @@ public class MemberMessageServiceTest {
         Map<String, String> messageData = Map.of("key", "value");
         String simpleAlarmInfo = "단일 사용자 메시지";
 
+        AlarmTokens alarmTokens = new AlarmTokens(fcmTokensAlarmOn, memberIds);
+
         given(alarmMessage.getAlarmReceiverTokens()).willReturn(fcmTokens);
         given(alarmMessage.getAlarmMessageType()).willReturn(AlarmMessageType.MEMBER_ARRIVAL);
-        given(memberRepository.findFirebaseTokenOnlyAlarmOn(fcmTokens)).willReturn(fcmTokensAlarmOn);
-        given(memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens)).willReturn(memberIds);
+        given(alarmTokenFilter.filterAndValidate(fcmTokens)).willReturn(alarmTokens);
+        given(messageSender.sendMessage(messageData, fcmTokensAlarmOn)).willReturn(CompletableFuture.completedFuture(null));
         given(alarmMessage.accept(alarmMessageConverter)).willReturn(simpleAlarmInfo);
 
         try (MockedStatic<ReflectionJsonUtil> mockedReflectionUtil = mockStatic(ReflectionJsonUtil.class)) {
@@ -270,9 +277,8 @@ public class MemberMessageServiceTest {
             memberMessageService.sendAndSaveMessage(alarmMessage);
 
             // Then
-            then(memberRepository).should().findFirebaseTokenOnlyAlarmOn(fcmTokens);
+            then(alarmTokenFilter).should().filterAndValidate(fcmTokens);
             then(messageSender).should().sendMessage(messageData, fcmTokensAlarmOn);
-            then(memberRepository).should().findMemberIdsByFirebaseTokenList(fcmTokens);
             then(alarmMessage).should().accept(alarmMessageConverter);
             then(memberMessageRepository).should().saveAll(argThat(memberMessages -> {
                 List<MemberMessage> messages = (List<MemberMessage>) memberMessages;
@@ -294,10 +300,12 @@ public class MemberMessageServiceTest {
         Map<String, String> messageData = Map.of("racingId", "123", "point", "50");
         String simpleAlarmInfo = "레이싱 메시지";
 
+        AlarmTokens alarmTokens = new AlarmTokens(fcmTokensAlarmOn, memberIds);
+
         given(alarmMessage.getAlarmReceiverTokens()).willReturn(fcmTokens);
         given(alarmMessage.getAlarmMessageType()).willReturn(AlarmMessageType.RACING_START);
-        given(memberRepository.findFirebaseTokenOnlyAlarmOn(fcmTokens)).willReturn(fcmTokensAlarmOn);
-        given(memberRepository.findMemberIdsByFirebaseTokenList(fcmTokens)).willReturn(memberIds);
+        given(alarmTokenFilter.filterAndValidate(fcmTokens)).willReturn(alarmTokens);
+        given(messageSender.sendMessage(messageData, fcmTokensAlarmOn)).willReturn(CompletableFuture.completedFuture(null));
         given(alarmMessage.accept(alarmMessageConverter)).willReturn(simpleAlarmInfo);
 
         try (MockedStatic<ReflectionJsonUtil> mockedReflectionUtil = mockStatic(ReflectionJsonUtil.class)) {
