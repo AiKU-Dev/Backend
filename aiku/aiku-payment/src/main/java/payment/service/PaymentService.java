@@ -113,7 +113,7 @@ public class PaymentService {
     }
 
     private void makeFailureMessage(String purchaseToken, Member member, PaymentProduct paymentProduct) {
-        kafkaProducerService.sendMessage(KafkaTopic.alarm,
+        kafkaProducerService.sendMessage(KafkaTopic.ALARM,
                 new PaymentFailedMessage(List.of(member.getFirebaseToken()),
                         AlarmMessageType.PAYMENT_FAILED,
                         purchaseToken,
@@ -124,7 +124,7 @@ public class PaymentService {
     }
 
     private void makeSuccessMessage(String purchaseToken, Member member, PaymentProduct paymentProduct) {
-        kafkaProducerService.sendMessage(KafkaTopic.alarm,
+        kafkaProducerService.sendMessage(KafkaTopic.ALARM,
                 new PaymentSuccessMessage(List.of(member.getFirebaseToken()),
                         AlarmMessageType.PAYMENT_FAILED,
                         purchaseToken,

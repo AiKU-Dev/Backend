@@ -25,4 +25,9 @@ public class TitleGrantedMessage extends AlarmMessage {
         this.titleCode = titleCode;
     }
 
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
+
 }
