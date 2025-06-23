@@ -1,24 +1,24 @@
-//package alarm_message_test;
-//
-//import alarm.util.AlarmMessageConverter;
-//import common.domain.member.MemberProfile;
-//import common.domain.member.MemberProfileBackground;
-//import common.domain.member.MemberProfileCharacter;
-//import common.domain.member.MemberProfileType;
-//import common.kafka_message.alarm.AlarmMemberInfo;
-//import common.kafka_message.alarm.AlarmMessageType;
-//import common.kafka_message.alarm.EmojiMessage;
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.context.SpringBootTest;
-//import org.springframework.transaction.annotation.Transactional;
-//
-//import java.lang.reflect.Field;
-//import java.util.List;
-//import java.util.Map;
-//
-//public class AlarmMessageTest {
-//
+package alarm_message_test;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import common.domain.member.MemberProfile;
+import common.domain.member.MemberProfileBackground;
+import common.domain.member.MemberProfileCharacter;
+import common.domain.member.MemberProfileType;
+import common.kafka_message.alarm.AlarmMemberInfo;
+import common.kafka_message.alarm.AlarmMessage;
+import common.kafka_message.alarm.AlarmMessageType;
+import common.kafka_message.alarm.EmojiMessage;
+import common.util.ObjectMapperUtil;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+
+
+public class AlarmMessageTest {
+
 //    @Test
 //    void abc() {
 //        EmojiMessage emojiMessage = new EmojiMessage(List.of("123"), AlarmMessageType.EMOJI,
@@ -37,4 +37,19 @@
 //            System.out.println("value = " + value);
 //        }
 //    }
-//}
+
+    @Test
+    void convert() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String json = """
+            {
+              "alarmMessageType": "POINT_ERROR",
+              "alarmReceiverTokens": ["token1", "token2"]
+            }
+            """;
+
+        AlarmMessage message = objectMapper.readValue(json, AlarmMessage.class);
+        System.out.println(message.getClass()); // PointErrorMessage
+    }
+}

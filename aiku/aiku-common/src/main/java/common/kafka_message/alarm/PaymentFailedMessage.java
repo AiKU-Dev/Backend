@@ -20,4 +20,9 @@ public class PaymentFailedMessage extends AlarmMessage {
         this.price = price;
         this.point = point;
     }
+
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
 }

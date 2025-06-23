@@ -12,4 +12,9 @@ public class PointErrorMessage extends AlarmMessage {
     public PointErrorMessage(List<String> alarmReceiverTokens, AlarmMessageType alarmMessageType) {
         super(alarmReceiverTokens, alarmMessageType);
     }
+
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
 }

@@ -25,4 +25,9 @@ public class LocationAlarmMessage extends AlarmMessage {
         this.longitude = longitude;
     }
 
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
+
 }

@@ -26,4 +26,9 @@ public class ScheduleAlarmMessage extends AlarmMessage{
         this.scheduleTime = schedule.getScheduleTime();
         this.location = schedule.getLocation();
     }
+
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
 }

@@ -1,5 +1,6 @@
 package alarm;
 
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.springframework.boot.SpringApplication;
@@ -19,5 +20,10 @@ public class SpringAlarmApplication {
     @Bean
     public JPAQueryFactory jpaQueryFactory(EntityManager em) {
         return new JPAQueryFactory(em);
+    }
+
+    @Bean
+    public FirebaseMessaging firebaseMessaging() {
+        return FirebaseMessaging.getInstance();
     }
 }

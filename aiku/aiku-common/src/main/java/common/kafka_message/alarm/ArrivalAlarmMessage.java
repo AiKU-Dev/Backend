@@ -5,9 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PACKAGE)
@@ -28,4 +26,8 @@ public class ArrivalAlarmMessage extends AlarmMessage {
         this.arriveMemberInfo = arriveMemberInfo;
     }
 
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
 }

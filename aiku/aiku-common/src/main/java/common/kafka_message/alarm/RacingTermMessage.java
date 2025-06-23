@@ -32,4 +32,9 @@ public class RacingTermMessage extends AlarmMessage{
         this.loserRacerInfo = loserRacerInfo;
     }
 
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
+
 }

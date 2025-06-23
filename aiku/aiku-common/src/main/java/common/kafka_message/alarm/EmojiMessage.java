@@ -28,4 +28,9 @@ public class EmojiMessage extends AlarmMessage {
         this.receiverInfo = receiverInfo;
     }
 
+    @Override
+    public String accept(AlarmMessageVisitor visitor) {
+        return visitor.visit(this);
+    }
+
 }
