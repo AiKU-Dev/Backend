@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class KafkaProducerService {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     public void sendMessage(KafkaTopic topic, Object message){
         String messageStr = ObjectMapperUtil.toJson(message);

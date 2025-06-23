@@ -18,12 +18,16 @@ public class AlarmMessageTypeIdResolver extends TypeIdResolverBase {
 
     @Override
     public String idFromValue(Object value) {
+        if (value instanceof AlarmMessage) {
+            AlarmMessageType type = ((AlarmMessage) value).getAlarmMessageType();
+            return type != null ? type.name() : null;
+        }
         return null;
     }
 
     @Override
     public String idFromValueAndType(Object value, Class<?> suggestedType) {
-        return null;
+        return idFromValue(value);
     }
 
     @Override
