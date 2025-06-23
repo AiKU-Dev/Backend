@@ -1,7 +1,6 @@
-package aiku_main.service;
+package aiku_main.service.title;
 
 import aiku_main.service.schedule.ScheduleService;
-import aiku_main.service.title.TitleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import common.domain.betting.Betting;
 import common.domain.Location;
@@ -30,7 +29,7 @@ import java.util.List;
 
 @Transactional
 @SpringBootTest
-public class TitleServiceTest {
+public class TitleServiceIntegreationTest {
     @Autowired
     EntityManager em;
 
