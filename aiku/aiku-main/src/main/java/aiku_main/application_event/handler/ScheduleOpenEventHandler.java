@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ScheduleOpenEventHandler {
 
-    private ScheduleService scheduleService;
+    private final ScheduleService scheduleService;
 
     @EventListener
     public void openSchedule(ScheduleOpenEvent event){

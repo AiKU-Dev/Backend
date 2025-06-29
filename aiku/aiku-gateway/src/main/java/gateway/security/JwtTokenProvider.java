@@ -11,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.slf4j.MDC;
 
 import java.security.Key;
 
@@ -76,6 +77,28 @@ public class JwtTokenProvider {
                     .getBody();
         } catch (ExpiredJwtException e) {
             return e.getClaims();
+        }
+    }
+
+    // 만료된 토큰에서도 사용자 정보를 추출하여 MDC에 설정
+    public void extractMemberIdFromExpiredToken(String token) {
+        try {
+            // 정상 토큰인 경우
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String memberId = claims.getSubject();
+            MDC.put("accessMemberId", memberId);
+        } catch (ExpiredJwtException e) {
+            // 만료된 토큰에서 클레임 추출
+            Claims claims = e.getClaims();
+            String memberId = claims.getSubject();
+            MDC.put("accessMemberId", memberId);
+        } catch (Exception e) {
+            log.warn("Failed to extract member ID from token", e);
         }
     }
 

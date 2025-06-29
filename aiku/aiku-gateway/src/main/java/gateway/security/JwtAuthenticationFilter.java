@@ -29,6 +29,31 @@ public class JwtAuthenticationFilter implements WebFilter {
         String path = exchange.getRequest().getPath().toString();
         HttpMethod method = exchange.getRequest().getMethod();
 
+        // /login/refresh는 특별 처리 - 만료된 토큰에서도 Member ID 추출
+        if ("/login/refresh".equals(path) && HttpMethod.POST.equals(method)) {
+            String token = resolveToken(exchange);
+            if (token != null) {
+                try {
+                    // 만료된 토큰에서 member ID 추출
+                    jwtTokenProvider.extractMemberIdFromExpiredToken(token);
+
+                    // MDC에서 Member ID를 가져와서 헤더에 추가
+                    String memberId = MDC.get("accessMemberId");
+                    if (memberId != null) {
+                        ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
+                                .header("Access-Member-Id", memberId)
+                                .build();
+
+                        ServerWebExchange mutatedExchange = exchange.mutate().request(mutatedRequest).build();
+                        return chain.filter(mutatedExchange);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to extract member ID from expired token", e);
+                }
+            }
+            return chain.filter(exchange);
+        }
+
         if (JwtSecurityUtils.isPermitAllPath(path, method)) {
             return chain.filter(exchange);
         }
