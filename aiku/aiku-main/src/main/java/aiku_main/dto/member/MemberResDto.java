@@ -31,4 +31,5 @@ public class MemberResDto {
     private MemberProfileResDto memberProfile;
     private TitleMemberResDto title;
     private int point;
+    private String email;
 }

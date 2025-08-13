@@ -52,7 +52,8 @@ public class MemberService {
 
         return new MemberResDto(
                 member.getId(), member.getNickname(), member.getOauthId(),
-                memberProfileResDto, mainTitle, member.getPoint());
+                memberProfileResDto, mainTitle, member.getPoint(),
+                member.getEmail());
     }
 
     @Transactional
